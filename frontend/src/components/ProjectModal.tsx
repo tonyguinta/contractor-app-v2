@@ -52,7 +52,7 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
     if (isOpen) {
       const initializeModal = async () => {
         // First fetch clients
-        const clientsList = await fetchClients()
+        await fetchClients()
         
         if (project) {
           // Then populate form with project data for editing
