@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Plus, User } from 'lucide-react'
 import { clientsApi } from '../api/client'
 import toast from 'react-hot-toast'
+import ClientModal from '../components/ClientModal'
 
 interface Client {
   id: number
@@ -15,6 +16,8 @@ interface Client {
 const Clients = () => {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<Client | undefined>(undefined)
 
   useEffect(() => {
     fetchClients()
@@ -29,6 +32,20 @@ const Clients = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleModalSuccess = () => {
+    fetchClients()
+  }
+
+  const handleClientClick = (client: Client) => {
+    setSelectedClient(client)
+    setIsModalOpen(true)
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setSelectedClient(undefined)
   }
 
   if (loading) {
@@ -48,7 +65,13 @@ const Clients = () => {
             Manage your client relationships and contact information.
           </p>
         </div>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => {
+            setSelectedClient(undefined)
+            setIsModalOpen(true)
+          }}
+          className="btn-primary flex items-center"
+        >
           <Plus className="h-4 w-4 mr-2" />
           New Client
         </button>
@@ -60,7 +83,13 @@ const Clients = () => {
           <h3 className="mt-2 text-sm font-medium text-gray-900">No clients</h3>
           <p className="mt-1 text-sm text-gray-500">Get started by adding your first client.</p>
           <div className="mt-6">
-            <button className="btn-primary">
+            <button 
+              onClick={() => {
+                setSelectedClient(undefined)
+                setIsModalOpen(true)
+              }}
+              className="btn-primary"
+            >
               <Plus className="h-4 w-4 mr-2" />
               New Client
             </button>
@@ -69,7 +98,11 @@ const Clients = () => {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {clients.map((client) => (
-            <div key={client.id} className="card hover:shadow-md transition-shadow duration-200">
+            <div 
+              key={client.id} 
+              className="card hover:shadow-md transition-shadow duration-200 cursor-pointer hover:bg-gray-50"
+              onClick={() => handleClientClick(client)}
+            >
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
                   <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center">
@@ -95,6 +128,13 @@ const Clients = () => {
           ))}
         </div>
       )}
+
+      <ClientModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleModalSuccess}
+        client={selectedClient}
+      />
     </div>
   )
 }

@@ -2,16 +2,25 @@ import { useState, useEffect } from 'react'
 import { Plus, FileText } from 'lucide-react'
 import { invoicesApi } from '../api/client'
 import toast from 'react-hot-toast'
+import InvoiceModal from '../components/InvoiceModal'
 
 interface Invoice {
   id: number
   invoice_number: string
   title: string
+  description?: string
   amount: number
+  tax_rate: number
+  tax_amount: number
   total_amount: number
   status: string
   issue_date: string
   due_date: string
+  paid_date?: string
+  created_at: string
+  owner_id: number
+  client_id: number
+  project_id?: number
   client: {
     id: number
     name: string
@@ -21,6 +30,8 @@ interface Invoice {
 const Invoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
 
   useEffect(() => {
     fetchInvoices()
@@ -56,6 +67,16 @@ const Invoices = () => {
     return status.charAt(0).toUpperCase() + status.slice(1)
   }
 
+  const handleEditInvoice = (invoice: Invoice) => {
+    setEditingInvoice(invoice)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingInvoice(null)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -73,7 +94,10 @@ const Invoices = () => {
             Create and manage invoices for your clients.
           </p>
         </div>
-        <button className="btn-primary flex items-center">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="btn-primary flex items-center"
+        >
           <Plus className="h-4 w-4 mr-2" />
           New Invoice
         </button>
@@ -85,7 +109,10 @@ const Invoices = () => {
           <h3 className="mt-2 text-sm font-medium text-gray-900">No invoices</h3>
           <p className="mt-1 text-sm text-gray-500">Get started by creating your first invoice.</p>
           <div className="mt-6">
-            <button className="btn-primary">
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="btn-primary"
+            >
               <Plus className="h-4 w-4 mr-2" />
               New Invoice
             </button>
@@ -95,7 +122,11 @@ const Invoices = () => {
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
           <ul className="divide-y divide-gray-200">
             {invoices.map((invoice) => (
-              <li key={invoice.id} className="px-6 py-4 hover:bg-gray-50">
+              <li 
+                key={invoice.id} 
+                className="px-6 py-4 hover:bg-blue-50 hover:border-l-4 hover:border-primary-500 transition-all duration-200 cursor-pointer"
+                onClick={() => handleEditInvoice(invoice)}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
@@ -131,6 +162,23 @@ const Invoices = () => {
           </ul>
         </div>
       )}
+
+      <InvoiceModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSuccess={fetchInvoices}
+        invoice={editingInvoice ? {
+          id: editingInvoice.id,
+          title: editingInvoice.title,
+          description: editingInvoice.description,
+          client_id: editingInvoice.client_id,
+          project_id: editingInvoice.project_id,
+          amount: editingInvoice.amount,
+          tax_rate: editingInvoice.tax_rate,
+          issue_date: editingInvoice.issue_date,
+          due_date: editingInvoice.due_date
+        } : undefined}
+      />
     </div>
   )
 }
