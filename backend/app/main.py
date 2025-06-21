@@ -19,7 +19,8 @@ allowed_origins = [
     "http://localhost:3000",
     "http://localhost:3001", 
     "http://localhost:3002",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://contractor-app-v2-a6nk12whh-tony-guintas-projects.vercel.app"  # Vercel deployment
 ]
 
 # Add production frontend URL from environment
