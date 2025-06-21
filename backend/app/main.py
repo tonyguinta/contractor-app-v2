@@ -20,7 +20,7 @@ allowed_origins = [
     "http://localhost:3001", 
     "http://localhost:3002",
     "http://localhost:5173",
-    "https://contractor-app-v2-a6nk12whh-tony-guintas-projects.vercel.app"  # Vercel deployment
+    "https://app.buildcraftpro.com"  # Custom Vercel domain
 ]
 
 # Add production frontend URL from environment
