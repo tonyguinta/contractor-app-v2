@@ -3,29 +3,134 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* BuildCraftPro Color Variables */
+    --color-primary: #15446C;     /* Navy Blueprint */
+    --color-primary-hover: #103654;
+    --color-accent: #E58C30;      /* Construction Amber */
+    --color-accent-hover: #d97706;
+    --color-bg-light: #F4F5F7;    /* Blueprint Off-White */
+    --color-bg-dark: #0F1A24;     /* Blueprint Charcoal */
+    --color-text-light: #1E1E1E;  /* Charcoal */
+    --color-text-dark: #EDEDED;   /* Soft White */
+    --color-border: #D1D5DB;      /* Slate Grey */
+    --color-success: #2E7D32;     /* Builder Green */
+    --color-warning: #FFB100;     /* Jobsite Yellow */
+    --color-error: #D32F2F;       /* Safety Red */
+  }
+
   html {
     scroll-behavior: smooth;
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-background-light text-text-light;
+    background-color: var(--color-bg-light);
+    color: var(--color-text-light);
   }
 }
 
 @layer components {
   .btn-primary {
     @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    background-color: var(--color-primary);
+  }
+  
+  .btn-primary:hover {
+    background-color: var(--color-primary-hover);
+  }
+  
+  .btn-accent {
+    @apply bg-accent-500 hover:bg-accent-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    background-color: var(--color-accent);
+  }
+  
+  .btn-accent:hover {
+    background-color: var(--color-accent-hover);
   }
   
   .btn-secondary {
     @apply bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
   
+  .btn-outline-primary {
+    @apply border-2 border-primary-600 text-primary-600 hover:bg-primary-600 hover:text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  
+  .btn-outline-accent {
+    @apply border-2 border-accent-500 text-accent-500 hover:bg-accent-500 hover:text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+  
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+    @apply w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors duration-200;
+    border-color: var(--color-border);
+    --tw-ring-color: var(--color-primary);
+  }
+  
+  .input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(21, 68, 108, 0.2);
   }
   
   .card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
+    @apply bg-white rounded-lg shadow-sm border p-6;
+    border-color: var(--color-border);
+  }
+  
+  .nav-primary {
+    background-color: var(--color-primary);
+  }
+  
+  .text-primary {
+    color: var(--color-primary);
+  }
+  
+  .text-accent {
+    color: var(--color-accent);
+  }
+  
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+  
+  .bg-accent {
+    background-color: var(--color-accent);
+  }
+  
+  .border-primary {
+    border-color: var(--color-primary);
+  }
+  
+  .border-accent {
+    border-color: var(--color-accent);
+  }
+  
+  /* Status Colors */
+  .text-success {
+    color: var(--color-success);
+  }
+  
+  .text-warning {
+    color: var(--color-warning);
+  }
+  
+  .text-error {
+    color: var(--color-error);
+  }
+  
+  .bg-success {
+    background-color: var(--color-success);
+  }
+  
+  .bg-warning {
+    background-color: var(--color-warning);
+  }
+  
+  .bg-error {
+    background-color: var(--color-error);
   }
 } /* Trigger deployment */

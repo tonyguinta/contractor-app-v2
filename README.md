@@ -1,6 +1,24 @@
-# Contractor App
+# BuildCraftPro
 
 A SaaS web application for general contractors (carpentry, HVAC, plumbing, electrical) to manage their projects, clients, and invoices.
+
+## 🎨 Brand Identity
+
+BuildCraftPro features a professional construction industry aesthetic with a carefully crafted color palette:
+
+### Color Palette
+- **Navy Blueprint** (#15446C) - Primary brand color for headers, navigation, and key UI elements
+- **Construction Amber** (#E58C30) - Accent color for call-to-action buttons and interactive highlights
+- **Blueprint Off-White** (#F4F5F7) - Light background for optimal readability
+- **Builder Green** (#2E7D32) - Success states and positive feedback
+- **Jobsite Yellow** (#FFB100) - Warnings and caution indicators
+- **Safety Red** (#D32F2F) - Error states and critical alerts
+
+### Logo Implementation
+- High-resolution logos optimized for web (90% size reduction via TinyPNG)
+- Dual variants: standard logo for light backgrounds, dark-mode variant for navy sidebar
+- Responsive sizing across all breakpoints
+- Professional branding throughout the application
 
 ## Features
 
@@ -11,6 +29,7 @@ A SaaS web application for general contractors (carpentry, HVAC, plumbing, elect
 - **Invoice Generation**: Create and manage invoices with tax calculations
 - **Dashboard**: Overview of projects, clients, invoices, and revenue metrics
 - **Mobile-First Design**: Fully responsive interface for use on job sites
+- **Professional Branding**: Construction industry-focused UI with consistent color palette
 
 ## Tech Stack
 
@@ -24,10 +43,16 @@ A SaaS web application for general contractors (carpentry, HVAC, plumbing, elect
 ### Frontend
 - **React**: JavaScript library for building user interfaces
 - **TypeScript**: Typed JavaScript for better developer experience
-- **Tailwind CSS**: Utility-first CSS framework
+- **Tailwind CSS**: Utility-first CSS framework with custom BuildCraftPro color palette
 - **Vite**: Next-generation frontend build tool
 - **React Router**: Declarative routing for React
 - **Axios**: HTTP client for API requests
+
+### Design System
+- **Custom Color Palette**: Professional construction industry colors
+- **CSS Custom Properties**: Theme-ready with CSS variables for future dark mode
+- **Component Library**: Consistent button variants and UI elements
+- **Responsive Design**: Mobile-first approach with construction site usability
 
 ### Development Tools
 - **Python Virtual Environment**: Isolated Python environment
@@ -45,8 +70,8 @@ A SaaS web application for general contractors (carpentry, HVAC, plumbing, elect
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/yourusername/contractor-app.git
-cd contractor-app
+git clone https://github.com/yourusername/buildcraftpro.git
+cd buildcraftpro
 ```
 
 2. **Run the automated setup:**
@@ -122,7 +147,7 @@ Copy the `env.example` file to `backend/.env` and update the values for your env
 SECRET_KEY=your-secret-key-change-in-production
 
 # Database URL (SQLite for development, PostgreSQL for production)
-DATABASE_URL=sqlite:///./contractor_app.db
+DATABASE_URL=sqlite:///./buildcraftpro.db
 
 # Optional: API URL for frontend (defaults to localhost:8000)
 # VITE_API_URL=http://localhost:8000/api
@@ -133,7 +158,7 @@ DATABASE_URL=sqlite:///./contractor_app.db
 ## Project Structure
 
 ```
-contractor-app/
+buildcraftpro/
 ├── backend/
 │   ├── app/
 │   │   ├── api/            # API endpoints (auth, clients, projects, invoices)
@@ -150,8 +175,13 @@ contractor-app/
 │   │   ├── context/        # React context providers (Auth)
 │   │   ├── pages/          # Page components (Dashboard, Clients, etc.)
 │   │   ├── App.tsx         # Main application component
-│   │   └── main.tsx        # Application entry point
+│   │   ├── main.tsx        # Application entry point
+│   │   └── index.css       # BuildCraftPro color palette and CSS variables
+│   ├── public/
+│   │   └── images/
+│   │       └── logos/      # Optimized BuildCraftPro logos and branding guide
 │   ├── package.json        # Node.js dependencies
+│   ├── tailwind.config.js  # Custom BuildCraftPro color configuration
 │   └── vite.config.ts      # Vite configuration
 ├── .cursor/               # Cursor IDE rules and conventions
 ├── env.example            # Environment variables template
@@ -176,10 +206,33 @@ The application uses the following main entities:
 This project follows specific coding conventions documented in `.cursor/rules/`:
 - **Architecture**: Clear separation between frontend/backend layers
 - **Backend Style**: FastAPI with Pydantic validation and SQLAlchemy ORM
-- **Frontend Style**: React with TypeScript and Tailwind CSS
+- **Frontend Style**: React with TypeScript, Tailwind CSS, and BuildCraftPro design system
 - **Authentication**: JWT-based authentication flow
 - **Data Modeling**: Consistent database patterns with proper relationships
 - **Naming**: Consistent naming conventions across the stack
+- **Branding**: Professional construction industry aesthetic with consistent color usage
+
+### Design System Usage
+
+The BuildCraftPro design system includes:
+
+```css
+/* Primary Actions */
+.btn-primary      /* Navy Blueprint background */
+.btn-accent       /* Construction Amber background */
+.btn-secondary    /* Neutral gray background */
+
+/* Outline Variants */
+.btn-outline-primary  /* Navy Blueprint border */
+.btn-outline-accent   /* Construction Amber border */
+
+/* Color Utilities */
+.text-primary     /* Navy Blueprint text */
+.text-accent      /* Construction Amber text */
+.text-success     /* Builder Green text */
+.text-warning     /* Jobsite Yellow text */
+.text-error       /* Safety Red text */
+```
 
 ## API Documentation
 

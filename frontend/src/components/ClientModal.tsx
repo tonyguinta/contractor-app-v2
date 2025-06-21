@@ -78,13 +78,13 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-primary-600">
             {client ? 'Edit Client' : 'New Client'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
           >
             <X className="h-5 w-5" />
           </button>
@@ -102,7 +102,7 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
               placeholder="Enter client name"
             />
             {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+              <p className="mt-1 text-sm text-error">{errors.name.message}</p>
             )}
           </div>
 
@@ -122,7 +122,7 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
               placeholder="Enter email address"
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              <p className="mt-1 text-sm text-error">{errors.email.message}</p>
             )}
           </div>
 
@@ -178,14 +178,14 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              className="btn-secondary"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-accent disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Saving...' : client ? 'Update Client' : 'Create Client'}
             </button>

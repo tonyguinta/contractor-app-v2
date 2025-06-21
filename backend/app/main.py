@@ -9,7 +9,7 @@ from app.models import models
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
-    title="Contractor App API",
+    title="BuildCraftPro API",
     description="A SaaS web application for general contractors",
     version="1.0.0"
 )
@@ -44,7 +44,7 @@ app.include_router(invoices.router, prefix="/api/invoices", tags=["invoices"])
 
 @app.get("/")
 async def root():
-    return {"message": "Contractor App API"}
+    return {"message": "BuildCraftPro API"}
 
 @app.get("/health")
 async def health_check():

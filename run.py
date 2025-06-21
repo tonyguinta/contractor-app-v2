@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Development server runner for Contractor App
+Development server runner for BuildCraftPro
 This script runs the FastAPI backend server with hot reload.
 """
 
@@ -27,7 +27,7 @@ def main():
         print("Please run 'python setup.py' first")
         sys.exit(1)
     
-    print("🚀 Starting Contractor App Backend Server...")
+    print("🚀 Starting BuildCraftPro Backend Server...")
     print("📍 Server will be available at: http://localhost:8000")
     print("📖 API Documentation: http://localhost:8000/docs")
     print("⏹️  Press Ctrl+C to stop the server")

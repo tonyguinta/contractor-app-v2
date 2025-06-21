@@ -1,6 +1,12 @@
-# Contractor App - Setup Guide
+# BuildCraftPro - Setup Guide
 
 A comprehensive SaaS web application for general contractors to manage their projects, clients, and invoices.
+
+## 🎨 Professional Branding
+BuildCraftPro features a construction industry-focused design with:
+- **Navy Blueprint** and **Construction Amber** color palette
+- Optimized high-resolution logos for all screen sizes
+- Professional UI designed for construction site usability
 
 ## 🚀 Quick Start
 
@@ -45,7 +51,7 @@ This will:
    Create a `.env` file in the `backend` directory:
    ```
    SECRET_KEY=your-secret-key-change-in-production
-   DATABASE_URL=sqlite:///./contractor_app.db
+   DATABASE_URL=sqlite:///./buildcraftpro.db
    ```
 
 ### Frontend Setup
@@ -231,7 +237,7 @@ frontend/
    - Check if all dependencies are installed
 
 3. **Database issues:**
-   - Delete `contractor_app.db` to reset database
+   - Delete `buildcraftpro.db` to reset database
    - Check file permissions in project directory
 
 4. **CORS errors:**

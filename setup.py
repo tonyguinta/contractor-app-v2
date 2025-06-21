@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for Contractor App
+Setup script for BuildCraftPro
 This script helps set up the development environment and run the application.
 """
 
@@ -98,7 +98,7 @@ def create_env_file():
         print("Creating .env file...")
         with open(env_file, "w") as f:
             f.write("SECRET_KEY=your-secret-key-change-in-production\n")
-            f.write("DATABASE_URL=sqlite:///./contractor_app.db\n")
+            f.write("DATABASE_URL=sqlite:///./buildcraftpro.db\n")
         print("✓ Created .env file")
 
 def print_instructions():
@@ -127,7 +127,7 @@ def print_instructions():
 
 def main():
     """Main setup function"""
-    print("🚀 Contractor App Setup")
+    print("🚀 BuildCraftPro Setup")
     print("=" * 50)
     
     # Check requirements

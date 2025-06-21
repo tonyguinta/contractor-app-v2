@@ -47,28 +47,28 @@ const Dashboard = () => {
       value: stats.clients,
       icon: Users,
       link: '/clients',
-      color: 'bg-blue-500'
+      color: 'bg-primary-600'
     },
     {
       name: 'Active Projects',
       value: stats.projects,
       icon: Folder,
       link: '/projects',
-      color: 'bg-green-500'
+      color: 'bg-success'
     },
     {
       name: 'Total Invoices',
       value: stats.invoices,
       icon: FileText,
       link: '/invoices',
-      color: 'bg-yellow-500'
+      color: 'bg-accent-500'
     },
     {
       name: 'Total Revenue',
       value: `$${stats.revenue.toLocaleString()}`,
       icon: DollarSign,
       link: '/invoices',
-      color: 'bg-purple-500'
+      color: 'bg-success'
     }
   ]
 
@@ -83,30 +83,30 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-600">
+        <h1 className="text-3xl font-bold text-primary-600">Dashboard</h1>
+        <p className="mt-2 text-gray-600">
           Welcome back! Here's an overview of your business.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((card) => {
           const Icon = card.icon
           return (
             <Link
               key={card.name}
               to={card.link}
-              className="card hover:shadow-md transition-shadow duration-200"
+              className="card hover:shadow-lg hover:border-primary-200 transition-all duration-200 group"
             >
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className={`${card.color} p-3 rounded-lg`}>
+                  <div className={`${card.color} p-3 rounded-lg group-hover:scale-105 transition-transform duration-200`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">{card.name}</p>
-                  <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+                  <p className="text-2xl font-bold text-primary-600">{card.value}</p>
                 </div>
               </div>
             </Link>
@@ -116,34 +116,39 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+          <h3 className="text-lg font-semibold text-primary-600 mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <Link to="/clients" className="block p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
+            <Link to="/clients" className="block p-4 rounded-lg border border-gray-200 hover:border-accent-300 hover:bg-accent-50 transition-colors duration-200 group">
               <div className="flex items-center">
-                <Users className="h-5 w-5 text-gray-400 mr-3" />
-                <span className="text-sm font-medium text-gray-900">Add New Client</span>
+                <Users className="h-5 w-5 text-accent-500 mr-3 group-hover:text-accent-600" />
+                <span className="text-sm font-medium text-gray-900 group-hover:text-accent-600">Add New Client</span>
               </div>
             </Link>
-            <Link to="/projects" className="block p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
+            <Link to="/projects" className="block p-4 rounded-lg border border-gray-200 hover:border-accent-300 hover:bg-accent-50 transition-colors duration-200 group">
               <div className="flex items-center">
-                <Folder className="h-5 w-5 text-gray-400 mr-3" />
-                <span className="text-sm font-medium text-gray-900">Create Project</span>
+                <Folder className="h-5 w-5 text-accent-500 mr-3 group-hover:text-accent-600" />
+                <span className="text-sm font-medium text-gray-900 group-hover:text-accent-600">Create Project</span>
               </div>
             </Link>
-            <Link to="/invoices" className="block p-3 rounded-lg border border-gray-200 hover:bg-gray-50">
+            <Link to="/invoices" className="block p-4 rounded-lg border border-gray-200 hover:border-accent-300 hover:bg-accent-50 transition-colors duration-200 group">
               <div className="flex items-center">
-                <FileText className="h-5 w-5 text-gray-400 mr-3" />
-                <span className="text-sm font-medium text-gray-900">Generate Invoice</span>
+                <FileText className="h-5 w-5 text-accent-500 mr-3 group-hover:text-accent-600" />
+                <span className="text-sm font-medium text-gray-900 group-hover:text-accent-600">Generate Invoice</span>
               </div>
             </Link>
           </div>
         </div>
 
         <div className="card">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Activity</h3>
+          <h3 className="text-lg font-semibold text-primary-600 mb-4">Recent Activity</h3>
           <div className="text-sm text-gray-600">
             <p>No recent activity to display.</p>
             <p className="mt-2">Start by adding clients and creating projects!</p>
+            <div className="mt-4 p-3 bg-background-light rounded-lg border border-gray-200">
+              <p className="text-xs text-gray-500">
+                💡 <span className="font-medium">Pro Tip:</span> Create your first client to get started with project management.
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -30,7 +30,7 @@
 
 ## Database Management
 
-- SQLite database file: `backend/contractor_app.db`
+- SQLite database file: `backend/buildcraftpro.db`
 - Models defined in `backend/app/models/models.py`
 - Database tables created automatically on first run
 - No migrations needed for development (SQLite auto-creates)
