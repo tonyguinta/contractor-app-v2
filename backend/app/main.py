@@ -20,7 +20,8 @@ allowed_origins = [
     "http://localhost:3001", 
     "http://localhost:3002",
     "http://localhost:5173",
-    "https://buildcraftpro.com"  # Custom Vercel domain
+    "https://buildcraftpro.com",  # Custom Vercel domain
+    "https://www.buildcraftpro.com"  # WWW subdomain
 ]
 
 # Add production frontend URL from environment
