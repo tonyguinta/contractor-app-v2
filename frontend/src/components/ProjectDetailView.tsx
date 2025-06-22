@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Plus, CheckSquare, Clock, AlertCircle, Edit, Trash2 } from 'lucide-react'
+import { ArrowLeft, Plus, CheckSquare, Clock, AlertCircle, Edit } from 'lucide-react'
 import { ProjectWithClient, Task } from '../types/api'
 import { tasksApi } from '../api/client'
 import TaskModal from './TaskModal'
