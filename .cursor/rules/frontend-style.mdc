@@ -14,7 +14,7 @@ alwaysApply: false
 ## Core Principles
 
 - Use **React with TypeScript** for all components
-- Use **Tailwind CSS** with **BuildCraftPro color palette** for styling (no custom CSS files)
+- Use **Tailwind CSS** with **BuildCraftPro color palette** and **custom CSS components** for styling
 - Keep all components **functional and stateless** unless state is needed
 - Use **custom hooks** for shared logic (API calls, local state)
 - Use `axios` in `src/api` and never directly inside pages/components
@@ -28,18 +28,26 @@ Use the BuildCraftPro color palette for consistent branding:
 
 ```css
 /* Primary Brand Colors */
-.text-primary     /* Navy Blueprint (#15446C) */
-.bg-primary       /* Navy Blueprint background */
-.text-accent      /* Construction Amber (#E58C30) */
-.bg-accent        /* Construction Amber background */
-
-/* Status Colors */
-.text-success     /* Builder Green (#2E7D32) */
-.text-warning     /* Jobsite Yellow (#FFB100) */
-.text-error       /* Safety Red (#D32F2F) */
+--color-primary: #15446C;        /* Navy Blueprint - headers, navigation, key UI */
+--color-primary-hover: #103654;  /* Darker blue for hover states */
+--color-accent: #E58C30;         /* Construction Amber - CTAs, highlights */
+--color-accent-hover: #d97706;   /* Darker amber for hover states */
 
 /* Background Colors */
-.bg-background-light  /* Blueprint Off-White (#F4F5F7) */
+--color-bg-light: #F4F5F7;      /* Blueprint Off-White - light mode background */
+--color-bg-dark: #0F1A24;       /* Blueprint Charcoal - dark mode background */
+
+/* Text Colors */
+--color-text-light: #1E1E1E;    /* Charcoal - primary body text */
+--color-text-dark: #EDEDED;     /* Soft White - text on dark backgrounds */
+
+/* UI Colors */
+--color-border: #D1D5DB;        /* Slate Grey - input borders, dividers */
+
+/* Status Colors */
+--color-success: #2E7D32;       /* Builder Green - success states */
+--color-warning: #FFB100;       /* Jobsite Yellow - warnings */
+--color-error: #D32F2F;         /* Safety Red - error states */
 ```
 
 ### Button System
@@ -64,11 +72,11 @@ Use consistent button classes for all interactive elements:
 Follow proper logo implementation:
 
 ```tsx
-// Light backgrounds (login, register, main content)
-<img src="/images/logos/logo.png" alt="BuildCraftPro" className="h-20 w-auto" />
-
 // Dark backgrounds (navy sidebar)
-<img src="/images/logos/logo-dark-mode.png" alt="BuildCraftPro" className="h-36 w-auto" />
+<img src="/images/logos/logo.png" alt="BuildCraftPro" className="h-12 w-auto" />
+
+// Light backgrounds (login, register, main content)
+<img src="/images/logos/logo-dark-mode.png" alt="BuildCraftPro" className="h-20 w-auto" />
 ```
 
 ## Component Structure
@@ -137,11 +145,12 @@ useEffect(() => {
 
 ## Styling Guidelines
 
-- Use BuildCraftPro Tailwind color palette exclusively
+- Use BuildCraftPro Tailwind color palette with custom CSS components
 - Follow mobile-first responsive design
 - Use consistent spacing scale (space-y-4, space-y-6, etc.)
-- Use semantic color classes from BuildCraftPro palette
+- Use semantic color classes and CSS custom properties from BuildCraftPro palette
 - Apply consistent card styling with `card` class
+- Custom CSS components are defined in `index.css` using CSS custom properties
 
 ```tsx
 // Good: Using BuildCraftPro design system
@@ -153,7 +162,13 @@ useEffect(() => {
   </div>
 </div>
 
-// Bad: Generic colors or custom CSS
+// Also good: Using custom CSS classes with BuildCraftPro colors
+<div className="nav-primary">
+  <span className="text-primary">Navy Blueprint text</span>
+  <span className="text-accent">Construction Amber text</span>
+</div>
+
+// Bad: Generic colors that don't match brand
 <div style={{ padding: '16px', backgroundColor: '#blue' }}>
   <button className="bg-blue-500">Generic Button</button>
 </div>

@@ -5,6 +5,7 @@ from app.db.database import get_db
 from app.models.models import Project, User, Client
 from app.schemas.schemas import Project as ProjectSchema, ProjectCreate, ProjectUpdate, ProjectWithClient
 from app.core.deps import get_current_active_user
+from app.core.constants import DEFAULT_SKIP, DEFAULT_LIMIT
 
 router = APIRouter()
 
@@ -27,8 +28,8 @@ def create_project(
 
 @router.get("/", response_model=List[ProjectWithClient])
 def read_projects(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = DEFAULT_SKIP,
+    limit: int = DEFAULT_LIMIT,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):

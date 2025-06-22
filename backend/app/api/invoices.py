@@ -7,6 +7,7 @@ from app.db.database import get_db
 from app.models.models import Invoice, User, Client, Project
 from app.schemas.schemas import Invoice as InvoiceSchema, InvoiceCreate, InvoiceUpdate, InvoiceWithClient
 from app.core.deps import get_current_active_user
+from app.core.constants import DEFAULT_SKIP, DEFAULT_LIMIT
 
 router = APIRouter()
 
@@ -49,8 +50,8 @@ def create_invoice(
 
 @router.get("/", response_model=List[InvoiceWithClient])
 def read_invoices(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = DEFAULT_SKIP,
+    limit: int = DEFAULT_LIMIT,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):

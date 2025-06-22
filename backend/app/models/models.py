@@ -2,6 +2,12 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKe
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
+from app.core.constants import (
+    PROJECT_STATUS_PLANNING,
+    TASK_STATUS_PENDING,
+    TASK_PRIORITY_MEDIUM,
+    INVOICE_STATUS_DRAFT
+)
 
 class User(Base):
     __tablename__ = "users"
@@ -14,6 +20,7 @@ class User(Base):
     phone = Column(String)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relationships
     clients = relationship("Client", back_populates="owner")
@@ -31,6 +38,7 @@ class Client(Base):
     company = Column(String)
     notes = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     owner_id = Column(Integer, ForeignKey("users.id"))
 
     # Relationships
@@ -44,7 +52,7 @@ class Project(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description = Column(Text)
-    status = Column(String, default="planning")  # planning, in_progress, completed, on_hold
+    status = Column(String, default=PROJECT_STATUS_PLANNING)  # planning, in_progress, completed, on_hold
     start_date = Column(DateTime)
     end_date = Column(DateTime)
     estimated_cost = Column(Float, default=0.0)
@@ -72,13 +80,14 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String)
     description = Column(Text)
-    status = Column(String, default="pending")  # pending, in_progress, completed
-    priority = Column(String, default="medium")  # low, medium, high
+    status = Column(String, default=TASK_STATUS_PENDING)  # pending, in_progress, completed
+    priority = Column(String, default=TASK_PRIORITY_MEDIUM)  # low, medium, high
     estimated_hours = Column(Float, default=0.0)
     actual_hours = Column(Float, default=0.0)
     due_date = Column(DateTime)
     completed_at = Column(DateTime)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Foreign key
     project_id = Column(Integer, ForeignKey("projects.id"))
@@ -97,11 +106,12 @@ class Invoice(Base):
     tax_rate = Column(Float, default=0.0)
     tax_amount = Column(Float, default=0.0)
     total_amount = Column(Float)
-    status = Column(String, default="draft")  # draft, sent, paid, overdue
+    status = Column(String, default=INVOICE_STATUS_DRAFT)  # draft, sent, paid, overdue
     issue_date = Column(DateTime)
     due_date = Column(DateTime)
     paid_date = Column(DateTime)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Foreign keys
     owner_id = Column(Integer, ForeignKey("users.id"))

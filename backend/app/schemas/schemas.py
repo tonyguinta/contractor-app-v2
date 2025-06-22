@@ -1,6 +1,12 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional, List, Literal
 from datetime import datetime
+from app.core.constants import (
+    PROJECT_STATUSES, PROJECT_STATUS_PLANNING,
+    TASK_STATUSES, TASK_STATUS_PENDING,
+    TASK_PRIORITIES, TASK_PRIORITY_MEDIUM,
+    INVOICE_STATUSES, INVOICE_STATUS_DRAFT
+)
 
 # User schemas
 class UserBase(BaseModel):
@@ -20,6 +26,7 @@ class User(UserBase):
     id: int
     is_active: bool
     created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
@@ -42,6 +49,7 @@ class ClientUpdate(ClientBase):
 class Client(ClientBase):
     id: int
     created_at: datetime
+    updated_at: Optional[datetime]
     owner_id: int
 
     class Config:
@@ -51,7 +59,7 @@ class Client(ClientBase):
 class ProjectBase(BaseModel):
     title: str
     description: Optional[str] = None
-    status: Optional[str] = "planning"
+    status: Optional[Literal["planning", "in_progress", "completed", "on_hold"]] = PROJECT_STATUS_PLANNING
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     estimated_cost: Optional[float] = 0.0
@@ -83,8 +91,8 @@ class Project(ProjectBase):
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
-    status: Optional[str] = "pending"
-    priority: Optional[str] = "medium"
+    status: Optional[Literal["pending", "in_progress", "completed"]] = TASK_STATUS_PENDING
+    priority: Optional[Literal["low", "medium", "high"]] = TASK_PRIORITY_MEDIUM
     estimated_hours: Optional[float] = 0.0
     due_date: Optional[datetime] = None
 
@@ -101,6 +109,7 @@ class Task(TaskBase):
     actual_hours: float
     completed_at: Optional[datetime]
     created_at: datetime
+    updated_at: Optional[datetime]
     project_id: int
 
     class Config:
@@ -122,7 +131,7 @@ class InvoiceCreate(InvoiceBase):
 class InvoiceUpdate(InvoiceBase):
     title: Optional[str] = None
     amount: Optional[float] = None
-    status: Optional[str] = None
+    status: Optional[Literal["draft", "sent", "paid", "overdue"]] = None
     paid_date: Optional[datetime] = None
 
 class Invoice(InvoiceBase):
@@ -130,9 +139,10 @@ class Invoice(InvoiceBase):
     invoice_number: str
     tax_amount: float
     total_amount: float
-    status: str
+    status: Literal["draft", "sent", "paid", "overdue"]
     paid_date: Optional[datetime]
     created_at: datetime
+    updated_at: Optional[datetime]
     owner_id: int
     client_id: int
     project_id: Optional[int]
