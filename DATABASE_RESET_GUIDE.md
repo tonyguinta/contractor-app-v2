@@ -17,10 +17,10 @@ This guide explains how to reset your database with the new schema changes (requ
 cd backend
 
 # Run the reset script (will prompt for confirmation)
-python reset_database.py
+python3 reset_database.py
 
 # Or skip confirmation prompt
-python reset_database.py --confirm
+python3 reset_database.py --confirm
 ```
 
 ### Option 2: Manual Reset
@@ -33,7 +33,7 @@ cd backend
 rm buildcraftpro.db
 
 # Start your FastAPI server - tables will be recreated automatically
-python main.py
+python3 main.py
 # or
 uvicorn main:app --reload
 ```
@@ -47,7 +47,7 @@ uvicorn main:app --reload
 export DATABASE_URL="postgresql://username:password@host:port/database"
 
 # Run the reset script
-python reset_database.py --confirm
+python3 reset_database.py --confirm
 ```
 
 ### Option 2: Manual PostgreSQL Reset
@@ -75,10 +75,10 @@ If you're using Railway or Heroku:
 
 ```bash
 # For Railway
-railway run python reset_database.py --confirm
+railway run python3 reset_database.py --confirm
 
 # For Heroku
-heroku run python reset_database.py --confirm -a your-app-name
+heroku run python3 reset_database.py --confirm -a your-app-name
 ```
 
 ## Verification

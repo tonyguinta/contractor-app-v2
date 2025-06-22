@@ -43,7 +43,7 @@ BuildCraftPro features a professional construction industry aesthetic with a car
 - **FastAPI**: Modern, high-performance web framework
 - **SQLAlchemy**: SQL toolkit and ORM
 - **Pydantic**: Data validation and request/response schemas
-- **SQLite**: Database (easily upgradeable to PostgreSQL)
+- **PostgreSQL**: Production database (SQLite for local development)
 - **JWT**: JSON Web Tokens for authentication
 
 ### Frontend
@@ -266,22 +266,22 @@ curl -H "Authorization: Bearer <your-token>" http://localhost:8000/api/clients
 
 ## Deployment
 
-For production deployment, consider these upgrades:
+### Current Production Setup
+- **Frontend**: Deployed on Vercel with automatic deployments from Git
+- **Backend**: Deployed on Railway with managed PostgreSQL database
+- **Database**: PostgreSQL with automatic backups and connection pooling
+- **Environment**: Secrets managed via Railway dashboard, HTTPS enabled
 
-### Database
-- **PostgreSQL**: Replace SQLite with PostgreSQL for better performance and concurrent access
-- **Connection Pooling**: Configure SQLAlchemy connection pooling for production load
+### Local vs Production Architecture
+- **Local Development**: SQLite database (automatic, no setup required)
+- **Production**: PostgreSQL on Railway (managed hosting, backups, monitoring)
+- **Database Switching**: Controlled via `DATABASE_URL` environment variable
+- **Deployment**: Git-based with automatic builds and deployments
 
-### Hosting Options
-- **Fly.io**: Modern platform with automatic scaling
-- **Render**: Simple deployment with managed PostgreSQL
-- **Railway**: Git-based deployment with database add-ons
-- **Docker**: Containerized deployment on any VPS or cloud provider
-
-### Environment
-- **Environment Variables**: Use proper secrets management
-- **HTTPS**: Enable SSL/TLS certificates
-- **CORS**: Configure appropriate CORS settings for your domain
+### Configuration Files
+- `railway.toml`: Railway deployment configuration
+- `Procfile`: Production server startup command
+- `vercel.json`: Frontend deployment and routing configuration
 
 ## Roadmap
 
@@ -294,11 +294,6 @@ For production deployment, consider these upgrades:
 
 ### Coming Soon
 - **Subproject Management UI**: Modal-based creation and editing of subprojects with status tracking
-- **Enhanced Login UX**: When logging in with non-existent email, present user with helpful message and option to register instead of generic error
-- **Form Privacy Enhancement**: Prevent browser auto-fill/auto-complete on sensitive business forms (client details, project information) to maintain data privacy
-- **Phone Number Formatting**: Auto-format phone numbers during input and store them in consistent format (e.g., (555) 123-4567) across all forms and displays
-- **Currency Formatting**: Format all dollar amounts with consistent decimal places (e.g., $1,234.00) across forms, displays, and reports
-- **Date Validation**: Prevent project end date from being set before start date with real-time validation and helpful error messages
 - **Task Management Kanban View**: Visual task board with drag-and-drop columns (Pending, In Progress, Completed) for enhanced project workflow visualization
 - **Scheduling & Calendar**: Project timeline management and milestone tracking
 - **Change Orders**: Handle project scope changes and additional work requests

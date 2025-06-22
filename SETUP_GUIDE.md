@@ -19,7 +19,7 @@ BuildCraftPro features a construction industry-focused design with:
 Run the setup script to automatically configure everything:
 
 ```bash
-python setup.py
+python3 setup.py
 ```
 
 This will:
@@ -35,7 +35,7 @@ This will:
 1. **Create virtual environment:**
    ```bash
    cd backend
-   python -m venv venv
+   python3 -m venv venv
    ```
 
 2. **Activate virtual environment:**
@@ -70,7 +70,7 @@ This will:
 
 ### Method 1: Using the run script
 ```bash
-python run.py
+python3 run.py
 ```
 
 ### Method 2: Manual startup

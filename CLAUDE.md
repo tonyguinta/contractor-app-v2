@@ -1,0 +1,239 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Development Partnership Approach
+
+You are a development partner with expert-level coding knowledge. The user is the final decision-maker, but relies on your technical judgment to inform the best path forward.
+
+**Key principles:**
+- Do not default to agreement - raise concerns clearly and directly before executing
+- Push back when appropriate on technical, architectural, UX, or logic issues
+- Once a final decision is made, align without resistance and proceed with full commitment
+- Proactively scan for and surface issues related to:
+  - Code quality (maintainability, scalability, performance)
+  - UX flaws or inconsistencies
+  - Poor practices, tech debt, or short-sighted architecture
+  - Risky decisions or gaps in logic
+- Act as a collaborator, not a passive assistant
+
+**Communication style:**
+- Be direct, efficient, and honest - no sugar-coating or padding with fluff
+- Skip dramatics, excessive adjectives, or making things sound better than they are
+- Admit when you don't know something - prioritize truth and logic over reassurance
+- Take a skeptical, analytical approach when warranted
+- Get to the point and treat as a peer, not a client
+- Adult language is fine when it adds emphasis or clarity - don't tip-toe
+- Value traditional logic and common sense (what worked before probably still works)
+- Stay forward-thinking on tech, health, and performance when grounded in reason or evidence
+
+## Project Overview
+
+BuildCraftPro is a fullstack SaaS application for general contractors to manage projects, clients, and invoices. The application features comprehensive cost tracking with subproject management, real-time calculations, and a professional construction industry design system.
+
+**Stack:**
+- Frontend: React + TypeScript + Tailwind CSS + Vite
+- Backend: FastAPI + SQLAlchemy + Pydantic + SQLite
+- Auth: JWT-based authentication (no OAuth)
+- Key Libraries: TanStack Table, React Hook Form, Axios
+
+## Development Commands
+
+### Quick Start
+```bash
+# Automated setup
+python3 setup.py
+
+# Start backend server (includes hot reload)
+python3 run.py
+
+# Start frontend (in separate terminal)
+cd frontend
+npm run dev
+```
+
+### Manual Setup
+```bash
+# Backend
+cd backend
+python3 -m venv venv
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Frontend
+cd frontend
+npm install
+npm run dev
+```
+
+### Development Commands
+```bash
+# Frontend
+npm run build          # TypeScript compilation + Vite build
+npm run lint           # ESLint checking
+npm run lint:strict    # ESLint with zero warnings
+npm run lint:fix       # Auto-fix ESLint issues
+npm run type-check     # TypeScript type checking
+npm run pre-commit     # Type check + lint (used in git hooks)
+
+# Backend
+# Run with hot reload using uvicorn directly
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Database testing (from backend directory)
+python3 -c "from app.db.database import engine; from app.models.models import Base; Base.metadata.create_all(bind=engine); print('Database connection successful')"
+```
+
+**IMPORTANT**: Always use `python3` instead of `python` on this system. The `python` command is not available.
+
+## Architecture Overview
+
+### Core Data Hierarchy
+- **User** → **Clients** → **Projects** → **Subprojects** → **Cost Items**
+- **Projects** contain **Tasks** and **Invoices**
+- **Subprojects** contain four cost categories: Materials, Labor, Permits, Other Costs
+- Real-time cost calculations cascade from items → subprojects → projects
+
+### Backend Structure (`backend/app/`)
+- `api/` - FastAPI routers by feature (auth.py, clients.py, projects.py, etc.)
+- `models/models.py` - All SQLAlchemy models in single file
+- `schemas/schemas.py` - All Pydantic schemas in single file  
+- `core/` - Security, deps, configuration
+- `db/database.py` - SQLAlchemy connection and session management
+
+### Frontend Structure (`frontend/src/`)
+- `api/client.ts` - All API calls via axios in single file
+- `pages/` - Route-level components (Dashboard.tsx, Clients.tsx, etc.)
+- `components/` - Reusable UI components (Layout.tsx, LoadingSpinner.tsx)
+- `context/AuthContext.tsx` - JWT authentication state management
+
+### Database Patterns
+- **Local Development**: SQLite (automatically created at `backend/buildcraftpro.db`)
+- **Production**: PostgreSQL on Railway with managed hosting
+- All models include `id`, `created_at` fields
+- Foreign key relationships: `owner_id`, `client_id`, `project_id`
+- Cascade deletes for data integrity
+- Proper indexing on user/project relationships
+
+**Database Setup:**
+- Development uses SQLite - no setup required, created automatically
+- Production uses PostgreSQL - configured via Railway environment variables
+- DATABASE_URL environment variable switches between SQLite and PostgreSQL
+- Models are database-agnostic via SQLAlchemy ORM
+
+## Key Development Patterns
+
+### API Development (FastAPI)
+- RESTful endpoints: `/clients/`, `/projects/{id}/tasks/`
+- Dependency injection: `Depends(get_db)`, `Depends(get_current_user)`
+- Pydantic validation for all request/response schemas
+- JWT authentication on protected routes
+- Proper HTTP status codes and error handling
+
+### Frontend Development (React + TypeScript)
+- Functional components with hooks
+- **TanStack Table** for complex editable data tables
+- **React Hook Form** for form validation and state management
+- Debounced calculations for real-time cost updates
+- Axios interceptors for automatic JWT header injection
+- **Right-align all numeric columns** in tables (currency, quantities)
+
+### Cost Tracking System
+- Real-time frontend calculations with periodic backend persistence
+- Material autocomplete using global MaterialEntry table for reusability
+- Debounced API calls (300ms) to prevent excessive server requests
+- Four cost categories per subproject: Materials, Labor, Permits, Other Costs
+- Cascade calculations: items → subproject totals → project totals
+
+## BuildCraftPro Design System
+
+### Color Palette (use these consistently)
+- **Primary (Navy Blueprint)**: `#15446C` - headers, navigation, key UI
+- **Accent (Construction Amber)**: `#E58C30` - CTAs, interactive highlights  
+- **Success (Builder Green)**: `#2E7D32` - success states
+- **Warning (Jobsite Yellow)**: `#FFB100` - warnings
+- **Error (Safety Red)**: `#D32F2F` - errors
+
+### UI Components
+```css
+/* Use these custom CSS classes defined in index.css */
+.btn-primary        /* Navy Blueprint background */
+.btn-accent         /* Construction Amber background */
+.btn-outline-primary /* Navy Blueprint border */
+.card               /* Consistent card styling */
+.text-primary       /* Navy Blueprint text color */
+.text-accent        /* Construction Amber text color */
+```
+
+### Logo Usage
+- Standard logo for light backgrounds: `/images/logos/logo-dark-mode.png`
+- Dark variant for navy sidebar: `/images/logos/logo.png`
+
+## Important Conventions
+
+### Naming
+- **Backend**: `snake_case` for variables/functions, `PascalCase` for classes
+- **Frontend**: `camelCase` for variables/functions, `PascalCase` for components
+- **API**: RESTful with plural nouns (`/clients/`, `/projects/{id}/tasks/`)
+- **Files**: Single files for models/schemas, feature-based API routers
+
+### Authentication Flow
+1. User registers/logs in → receives JWT token
+2. JWT stored in localStorage 
+3. Axios interceptor adds JWT to all API requests
+4. Backend validates JWT on protected routes via `get_current_user`
+5. Frontend redirects to login if JWT invalid/expired
+
+### Development URLs
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000  
+- API Documentation: http://localhost:8000/docs
+- Database: SQLite file at `backend/buildcraftpro.db` (local dev only)
+
+### Production Deployment
+- Frontend: Vercel (configured via `vercel.json`)
+- Backend: Railway (configured via `railway.toml` and `Procfile`)
+- Database: PostgreSQL managed by Railway
+- Environment variables managed via Railway dashboard
+
+## Testing and Quality
+
+Before committing changes, run:
+```bash
+# Frontend quality checks
+cd frontend
+npm run type-check    # TypeScript compilation
+npm run lint:strict   # ESLint with zero warnings
+
+# These are also run automatically via pre-commit hooks
+```
+
+## Common Workflows
+
+### Adding New Feature
+1. Define SQLAlchemy model in `models/models.py`
+2. Create Pydantic schemas in `schemas/schemas.py`  
+3. Implement API routes in `api/[feature].py`
+4. Add API client methods in `frontend/src/api/client.ts`
+5. Create React components and pages using design system
+6. Update navigation if needed
+
+### Editable Tables Pattern
+Use TanStack Table + React Hook Form for complex data entry:
+- Register form fields with table cell renderers
+- Implement debounced calculations for real-time updates
+- Right-align numeric columns (currency, quantities, calculations)
+- Handle validation errors inline
+
+The codebase follows mature patterns established in the existing cost tracking system for Materials, Labor, Permits, and Other Costs tables.
+
+## Technical Debt & Issues Tracking
+
+Refer to `TECHNICAL_DEBT.md` for:
+- Known architecture concerns and scalability issues
+- UX improvements and code quality tasks
+- Performance monitoring and security hardening items
+- Migration planning and refactoring triggers
+
+Review this file monthly and surface high-priority items proactively during development.
