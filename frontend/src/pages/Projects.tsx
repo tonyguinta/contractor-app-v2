@@ -4,12 +4,13 @@ import { projectsApi } from '../api/client'
 import { ProjectWithClient, ApiError } from '../types/api'
 import toast from 'react-hot-toast'
 import ProjectModal from '../components/ProjectModal'
+import ProjectDetailView from '../components/ProjectDetailView'
 
 const Projects = () => {
   const [projects, setProjects] = useState<ProjectWithClient[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingProject, setEditingProject] = useState<ProjectWithClient | null>(null)
+  const [selectedProject, setSelectedProject] = useState<ProjectWithClient | null>(null)
 
   useEffect(() => {
     fetchProjects()
@@ -47,14 +48,17 @@ const Projects = () => {
     return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
-  const handleEditProject = (project: ProjectWithClient) => {
-    setEditingProject(project)
-    setIsModalOpen(true)
+  const handleViewProject = (project: ProjectWithClient) => {
+    setSelectedProject(project)
+  }
+
+  const handleBackToProjects = () => {
+    setSelectedProject(null)
+    fetchProjects() // Refresh projects when returning
   }
 
   const handleCloseModal = () => {
     setIsModalOpen(false)
-    setEditingProject(null)
   }
 
   if (loading) {
@@ -62,6 +66,17 @@ const Projects = () => {
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
       </div>
+    )
+  }
+
+  // Show project detail view if a project is selected
+  if (selectedProject) {
+    return (
+      <ProjectDetailView
+        project={selectedProject}
+        onBack={handleBackToProjects}
+        onProjectUpdate={handleBackToProjects}
+      />
     )
   }
 
@@ -104,7 +119,7 @@ const Projects = () => {
             <div 
               key={project.id} 
               className="card hover:shadow-lg hover:scale-[1.02] transition-all duration-200 cursor-pointer"
-              onClick={() => handleEditProject(project)}
+              onClick={() => handleViewProject(project)}
             >
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
@@ -148,7 +163,6 @@ const Projects = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSuccess={fetchProjects}
-        project={editingProject || undefined}
       />
     </div>
   )

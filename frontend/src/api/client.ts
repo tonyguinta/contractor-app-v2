@@ -8,8 +8,8 @@ import {
   User, UserCreate, UserLogin, Token
 } from '../types/api'
 
-// Use environment variable for API URL, fallback to production
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.buildcraftpro.com/api'
+// Use environment variable for API URL, fallback to localhost for development
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -43,8 +43,36 @@ api.interceptors.response.use(
       window.location.href = '/login'
     }
     
-    const message = error.response?.data?.detail || 'An error occurred'
-    toast.error(message)
+    // Handle different error response formats
+    let message = 'An error occurred'
+    
+    console.log('API Error Response:', error.response?.data)
+    
+    if (error.response?.data) {
+      const data = error.response.data
+      
+      // Handle FastAPI validation errors (array of error objects)
+      if (Array.isArray(data) && data.length > 0) {
+        message = data.map(err => err.msg || err.message || 'Validation error').join(', ')
+      }
+      // Handle standard error responses with detail field
+      else if (data.detail) {
+        // Check if detail is an array (FastAPI validation errors)
+        if (Array.isArray(data.detail)) {
+          message = data.detail.map((err: any) => err.msg || err.message || 'Validation error').join(', ')
+        } else {
+          message = data.detail
+        }
+      }
+      // Handle other error formats
+      else if (data.message) {
+        message = data.message
+      }
+    }
+    
+    // Ensure message is always a string to prevent React rendering errors
+    const safeMessage = typeof message === 'string' ? message : 'An error occurred'
+    toast.error(safeMessage)
     
     return Promise.reject(error)
   }

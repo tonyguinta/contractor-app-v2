@@ -76,12 +76,12 @@ cd buildcraftpro
 
 2. **Run the automated setup:**
 ```bash
-python setup.py
+python3 setup.py
 ```
 
 3. **Start the backend server:**
 ```bash
-python run.py
+python3 run.py
 ```
 *Note: `run.py` starts the FastAPI backend server with hot reload on port 8000*
 
@@ -105,7 +105,7 @@ For detailed instructions and troubleshooting, see [SETUP_GUIDE.md](SETUP_GUIDE.
 1. **Create and activate virtual environment:**
 ```bash
 cd backend
-python -m venv venv
+python3 -m venv venv
 # Windows:
 venv\Scripts\activate
 # macOS/Linux:
@@ -273,6 +273,12 @@ For production deployment, consider these upgrades:
 ## Roadmap
 
 ### Coming Soon
+- **Enhanced Login UX**: When logging in with non-existent email, present user with helpful message and option to register instead of generic error
+- **Form Privacy Enhancement**: Prevent browser auto-fill/auto-complete on sensitive business forms (client details, project information) to maintain data privacy
+- **Phone Number Formatting**: Auto-format phone numbers during input and store them in consistent format (e.g., (555) 123-4567) across all forms and displays
+- **Currency Formatting**: Format all dollar amounts with consistent decimal places (e.g., $1,234.00) across forms, displays, and reports
+- **Date Validation**: Prevent project end date from being set before start date with real-time validation and helpful error messages
+- **Task Management Kanban View**: Visual task board with drag-and-drop columns (Pending, In Progress, Completed) for enhanced project workflow visualization
 - **Scheduling & Calendar**: Project timeline management and milestone tracking
 - **Change Orders**: Handle project scope changes and additional work requests
 - **Subcontractor Management**: Manage subcontractor relationships and payments

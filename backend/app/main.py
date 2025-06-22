@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import auth, clients, projects, invoices
+from app.api import auth, clients, projects, invoices, tasks
 from app.db.database import engine
 from app.models import models
 
@@ -41,6 +41,7 @@ app.include_router(auth.router, prefix="/api/auth", tags=["authentication"])
 app.include_router(clients.router, prefix="/api/clients", tags=["clients"])
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(invoices.router, prefix="/api/invoices", tags=["invoices"])
+app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 
 @app.get("/")
 async def root():

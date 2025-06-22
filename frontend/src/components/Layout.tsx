@@ -4,6 +4,7 @@ import {
   Home, 
   Users, 
   Folder, 
+  CheckSquare,
   FileText,
   LogOut,
   Menu,
@@ -20,6 +21,7 @@ const Layout = () => {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Clients', href: '/clients', icon: Users },
     { name: 'Projects', href: '/projects', icon: Folder },
+    { name: 'Tasks', href: '/tasks', icon: CheckSquare },
     { name: 'Invoices', href: '/invoices', icon: FileText },
   ]
 
