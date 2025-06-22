@@ -21,6 +21,11 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
     ? 'https://api.buildcraftpro.com/api' 
     : 'http://localhost:8000/api')
 
+// Debug: Check what URL is actually being used in production
+if (import.meta.env.MODE === 'production') {
+  console.log('🔍 Production API URL:', API_BASE_URL)
+}
+
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
