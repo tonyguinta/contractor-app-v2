@@ -2,51 +2,20 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { projectsApi, clientsApi } from '../api/client'
+import { ProjectWithClient, ProjectCreate, Client } from '../types/api'
 import toast from 'react-hot-toast'
-
-interface ProjectFormData {
-  title: string
-  description?: string
-  status: string
-  client_id: number
-  estimated_cost: number
-  start_date?: string
-  end_date?: string
-  labor_cost?: number
-  material_cost?: number
-  permit_cost?: number
-  other_cost?: number
-}
-
-interface Client {
-  id: number
-  name: string
-}
 
 interface ProjectModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  project?: {
-    id: number
-    title: string
-    description?: string
-    status: string
-    client_id: number
-    estimated_cost: number
-    start_date?: string
-    end_date?: string
-    labor_cost?: number
-    material_cost?: number
-    permit_cost?: number
-    other_cost?: number
-  }
+  project?: ProjectWithClient
 }
 
 const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps) => {
   const [loading, setLoading] = useState(false)
   const [clients, setClients] = useState<Client[]>([])
-  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<ProjectFormData>()
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<ProjectCreate>()
 
   useEffect(() => {
     if (isOpen) {
@@ -104,7 +73,7 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
     }
   }
 
-  const onSubmit = async (data: ProjectFormData) => {
+  const onSubmit = async (data: ProjectCreate) => {
     setLoading(true)
     try {
       const projectData = {

@@ -1,37 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Plus, FileText } from 'lucide-react'
 import { invoicesApi } from '../api/client'
+import { InvoiceWithClient, ApiError } from '../types/api'
 import toast from 'react-hot-toast'
 import InvoiceModal from '../components/InvoiceModal'
 
-interface Invoice {
-  id: number
-  invoice_number: string
-  title: string
-  description?: string
-  amount: number
-  tax_rate: number
-  tax_amount: number
-  total_amount: number
-  status: string
-  issue_date: string
-  due_date: string
-  paid_date?: string
-  created_at: string
-  owner_id: number
-  client_id: number
-  project_id?: number
-  client: {
-    id: number
-    name: string
-  }
-}
-
 const Invoices = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [invoices, setInvoices] = useState<InvoiceWithClient[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
+  const [editingInvoice, setEditingInvoice] = useState<InvoiceWithClient | null>(null)
 
   useEffect(() => {
     fetchInvoices()
@@ -41,8 +19,10 @@ const Invoices = () => {
     try {
       const response = await invoicesApi.getAll()
       setInvoices(response.data)
-    } catch (error) {
-      toast.error('Failed to fetch invoices')
+    } catch (error: any) {
+      const apiError = error.response?.data as ApiError
+      const message = apiError?.detail || 'Failed to fetch invoices'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -67,7 +47,7 @@ const Invoices = () => {
     return status.charAt(0).toUpperCase() + status.slice(1)
   }
 
-  const handleEditInvoice = (invoice: Invoice) => {
+  const handleEditInvoice = (invoice: InvoiceWithClient) => {
     setEditingInvoice(invoice)
     setIsModalOpen(true)
   }
@@ -146,14 +126,21 @@ const Invoices = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="mt-2 flex items-center text-sm text-gray-500">
-                      <span>
-                        Issued: {new Date(invoice.issue_date).toLocaleDateString()}
-                      </span>
-                      <span className="mx-2">•</span>
-                      <span>
-                        Due: {new Date(invoice.due_date).toLocaleDateString()}
-                      </span>
+                    <div className="mt-2 flex items-center justify-between text-sm text-gray-500">
+                      <div>
+                        <span>
+                          Issued: {new Date(invoice.issue_date).toLocaleDateString()}
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>
+                          Due: {new Date(invoice.due_date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {invoice.updated_at && (
+                        <span className="text-xs">
+                          Updated {new Date(invoice.updated_at).toLocaleDateString()}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -167,17 +154,7 @@ const Invoices = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSuccess={fetchInvoices}
-        invoice={editingInvoice ? {
-          id: editingInvoice.id,
-          title: editingInvoice.title,
-          description: editingInvoice.description,
-          client_id: editingInvoice.client_id,
-          project_id: editingInvoice.project_id,
-          amount: editingInvoice.amount,
-          tax_rate: editingInvoice.tax_rate,
-          issue_date: editingInvoice.issue_date,
-          due_date: editingInvoice.due_date
-        } : undefined}
+        invoice={editingInvoice || undefined}
       />
     </div>
   )

@@ -2,59 +2,43 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { clientsApi } from '../api/client'
+import { Client, ClientCreate } from '../types/api'
 import toast from 'react-hot-toast'
-
-interface ClientFormData {
-  name: string
-  email?: string
-  phone?: string
-  company?: string
-  address?: string
-  notes?: string
-}
 
 interface ClientModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  client?: {
-    id: number
-    name: string
-    email?: string
-    phone?: string
-    company?: string
-    address?: string
-    notes?: string
-  }
+  client?: Client
 }
 
 const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) => {
   const [loading, setLoading] = useState(false)
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<ClientFormData>()
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<ClientCreate>()
 
   useEffect(() => {
     if (client) {
       reset({
         name: client.name,
-        email: client.email || '',
-        phone: client.phone || '',
-        company: client.company || '',
-        address: client.address || '',
-        notes: client.notes || ''
+        email: client.email || undefined,
+        phone: client.phone || undefined,
+        company: client.company || undefined,
+        address: client.address || undefined,
+        notes: client.notes || undefined
       })
     } else {
       reset({
         name: '',
-        email: '',
-        phone: '',
-        company: '',
-        address: '',
-        notes: ''
+        email: undefined,
+        phone: undefined,
+        company: undefined,
+        address: undefined,
+        notes: undefined
       })
     }
   }, [client, reset])
 
-  const onSubmit = async (data: ClientFormData) => {
+  const onSubmit = async (data: ClientCreate) => {
     setLoading(true)
     try {
       if (client) {

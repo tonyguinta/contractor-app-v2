@@ -1,37 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Plus, Folder } from 'lucide-react'
 import { projectsApi } from '../api/client'
+import { ProjectWithClient, ApiError } from '../types/api'
 import toast from 'react-hot-toast'
 import ProjectModal from '../components/ProjectModal'
 
-interface Project {
-  id: number
-  title: string
-  description?: string
-  status: string
-  start_date?: string
-  end_date?: string
-  estimated_cost: number
-  labor_cost?: number
-  material_cost?: number
-  permit_cost?: number
-  other_cost?: number
-  actual_cost: number
-  created_at: string
-  updated_at?: string
-  owner_id: number
-  client_id: number
-  client: {
-    id: number
-    name: string
-  }
-}
-
 const Projects = () => {
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<ProjectWithClient[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [editingProject, setEditingProject] = useState<ProjectWithClient | null>(null)
 
   useEffect(() => {
     fetchProjects()
@@ -41,8 +19,10 @@ const Projects = () => {
     try {
       const response = await projectsApi.getAll()
       setProjects(response.data)
-    } catch (error) {
-      toast.error('Failed to fetch projects')
+    } catch (error: any) {
+      const apiError = error.response?.data as ApiError
+      const message = apiError?.detail || 'Failed to fetch projects'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -67,7 +47,7 @@ const Projects = () => {
     return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
-  const handleEditProject = (project: Project) => {
+  const handleEditProject = (project: ProjectWithClient) => {
     setEditingProject(project)
     setIsModalOpen(true)
   }
@@ -152,9 +132,12 @@ const Projects = () => {
               </div>
               
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <p className="text-xs text-gray-500">
-                  Created {new Date(project.created_at).toLocaleDateString()}
-                </p>
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Created {new Date(project.created_at).toLocaleDateString()}</span>
+                  {project.updated_at && (
+                    <span>Updated {new Date(project.updated_at).toLocaleDateString()}</span>
+                  )}
+                </div>
               </div>
             </div>
                     ))}
@@ -165,20 +148,7 @@ const Projects = () => {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSuccess={fetchProjects}
-        project={editingProject ? {
-          id: editingProject.id,
-          title: editingProject.title,
-          description: editingProject.description,
-          status: editingProject.status,
-          client_id: editingProject.client_id,
-          estimated_cost: editingProject.estimated_cost,
-          start_date: editingProject.start_date,
-          end_date: editingProject.end_date,
-          labor_cost: editingProject.labor_cost,
-          material_cost: editingProject.material_cost,
-          permit_cost: editingProject.permit_cost,
-          other_cost: editingProject.other_cost
-        } : undefined}
+        project={editingProject || undefined}
       />
     </div>
   )

@@ -1,17 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Plus, User } from 'lucide-react'
 import { clientsApi } from '../api/client'
+import { Client, ApiError } from '../types/api'
 import toast from 'react-hot-toast'
 import ClientModal from '../components/ClientModal'
-
-interface Client {
-  id: number
-  name: string
-  email?: string
-  phone?: string
-  company?: string
-  created_at: string
-}
 
 const Clients = () => {
   const [clients, setClients] = useState<Client[]>([])
@@ -27,8 +19,10 @@ const Clients = () => {
     try {
       const response = await clientsApi.getAll()
       setClients(response.data)
-    } catch (error) {
-      toast.error('Failed to fetch clients')
+    } catch (error: any) {
+      const apiError = error.response?.data as ApiError
+      const message = apiError?.detail || 'Failed to fetch clients'
+      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -122,6 +116,14 @@ const Clients = () => {
                   {client.phone && (
                     <p className="text-sm text-gray-500 truncate">{client.phone}</p>
                   )}
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <div className="flex justify-between text-xs text-gray-400">
+                      <span>Created {new Date(client.created_at).toLocaleDateString()}</span>
+                      {client.updated_at && (
+                        <span>Updated {new Date(client.updated_at).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

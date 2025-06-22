@@ -2,56 +2,22 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { invoicesApi, clientsApi, projectsApi } from '../api/client'
+import { InvoiceWithClient, InvoiceCreate, Client, ProjectWithClient } from '../types/api'
 import toast from 'react-hot-toast'
-
-interface InvoiceFormData {
-  title: string
-  description?: string
-  client_id: number
-  project_id?: string
-  amount: number
-  tax_rate: number
-  issue_date: string
-  due_date: string
-}
-
-interface Client {
-  id: number
-  name: string
-}
-
-interface Project {
-  id: number
-  title: string
-  client: {
-    id: number
-    name: string
-  }
-}
 
 interface InvoiceModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
-  invoice?: {
-    id: number
-    title: string
-    description?: string
-    client_id: number
-    project_id?: number
-    amount: number
-    tax_rate: number
-    issue_date: string
-    due_date: string
-  }
+  invoice?: InvoiceWithClient
 }
 
 const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps) => {
   const [loading, setLoading] = useState(false)
   const [clients, setClients] = useState<Client[]>([])
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<ProjectWithClient[]>([])
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null)
-  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<InvoiceFormData>()
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<InvoiceCreate>()
 
   const watchedClientId = watch('client_id')
 
@@ -140,7 +106,7 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
     return projects.filter(project => project.client.id === selectedClientId)
   }
 
-  const onSubmit = async (data: InvoiceFormData) => {
+  const onSubmit = async (data: InvoiceCreate) => {
     setLoading(true)
     try {
       const invoiceData = {
