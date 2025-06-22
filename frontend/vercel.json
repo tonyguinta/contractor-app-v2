@@ -6,6 +6,6 @@
     }
   ],
   "env": {
-    "VITE_API_URL": "https://api.buildcraftpro.com/api"
+    "VITE_API_URL": "https://api.buildcraft.com/api"
   }
 } 
