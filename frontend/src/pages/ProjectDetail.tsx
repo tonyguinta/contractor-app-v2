@@ -10,6 +10,10 @@ import {
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
 import MaterialsTable from '../components/MaterialsTable'
+import LaborTable from '../components/LaborTable'
+import PermitsTable from '../components/PermitsTable'
+import OtherCostsTable from '../components/OtherCostsTable'
+import CostSummary from '../components/CostSummary'
 import SubprojectModal from '../components/SubprojectModal'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
 
@@ -286,32 +290,12 @@ const ProjectDetail = () => {
 
           {/* Cost Summary */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Cost Summary</h3>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Materials</span>
-                <span className="text-sm font-medium">{formatCurrency(projectTotals.materials)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Labor</span>
-                <span className="text-sm font-medium">{formatCurrency(projectTotals.labor)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Permits</span>
-                <span className="text-sm font-medium">{formatCurrency(projectTotals.permits)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Other Costs</span>
-                <span className="text-sm font-medium">{formatCurrency(projectTotals.other)}</span>
-              </div>
-              <div className="border-t pt-3">
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-900">Total Estimated Cost</span>
-                  <span className="font-bold text-lg text-gray-900">{formatCurrency(projectTotals.total)}</span>
-                </div>
-              </div>
-            </div>
+            <CostSummary
+              materialsCost={projectTotals.materials}
+              laborCost={projectTotals.labor}
+              permitsCost={projectTotals.permits}
+              otherCost={projectTotals.other}
+            />
           </div>
         </div>
       )}
@@ -399,22 +383,13 @@ interface SubprojectCardProps {
 }
 
 const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, onToggleExpand }: SubprojectCardProps) => {
+  const [materialsCost, setMaterialsCost] = useState(0)
+  const [laborCost, setLaborCost] = useState(0)
+  const [permitsCost, setPermitsCost] = useState(0)
+  const [otherCost, setOtherCost] = useState(0)
 
   const calculateSubprojectTotal = () => {
-    const materialTotal = subproject.material_items.reduce(
-      (sum, item) => sum + (item.quantity * item.unit_cost), 0
-    )
-    const laborTotal = subproject.labor_items.reduce(
-      (sum, item) => sum + (item.number_of_workers * item.hourly_rate * item.hours), 0
-    )
-    const permitTotal = subproject.permit_items.reduce(
-      (sum, item) => sum + item.cost, 0
-    )
-    const otherTotal = subproject.other_cost_items.reduce(
-      (sum, item) => sum + item.cost, 0
-    )
-
-    return materialTotal + laborTotal + permitTotal + otherTotal
+    return materialsCost + laborCost + permitsCost + otherCost
   }
 
   const formatCurrency = (amount: number) => {
@@ -489,27 +464,38 @@ const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, on
 
         {isExpanded && (
           <div className="mt-6 space-y-6">
+            {/* Cost Summary */}
+            <CostSummary
+              materialsCost={materialsCost}
+              laborCost={laborCost}
+              permitsCost={permitsCost}
+              otherCost={otherCost}
+            />
+            
             {/* Materials Table */}
             <MaterialsTable 
               subproject={subproject} 
-              onUpdate={onUpdate} 
+              onUpdate={onUpdate}
+              onCostChange={setMaterialsCost}
             />
             
-            {/* Placeholder for other cost tables */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h5 className="font-medium text-gray-900 mb-2">Labor</h5>
-                <p className="text-sm text-gray-500">Labor tracking table coming soon...</p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h5 className="font-medium text-gray-900 mb-2">Permits</h5>
-                <p className="text-sm text-gray-500">Permits tracking table coming soon...</p>
-              </div>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h5 className="font-medium text-gray-900 mb-2">Other Costs</h5>
-              <p className="text-sm text-gray-500">Other costs tracking table coming soon...</p>
-            </div>
+            {/* Labor Table */}
+            <LaborTable
+              subprojectId={subproject.id}
+              onCostChange={setLaborCost}
+            />
+            
+            {/* Permits Table */}
+            <PermitsTable
+              subprojectId={subproject.id}
+              onCostChange={setPermitsCost}
+            />
+            
+            {/* Other Costs Table */}
+            <OtherCostsTable
+              subprojectId={subproject.id}
+              onCostChange={setOtherCost}
+            />
           </div>
         )}
       </div>

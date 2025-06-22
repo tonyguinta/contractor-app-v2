@@ -224,6 +224,19 @@ def delete_material_item(
 
 # Labor Items CRUD
 
+@router.get("/{subproject_id}/labor", response_model=List[LaborItemSchema])
+def get_labor_items(
+    subproject_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    # Verify subproject access
+    subproject = db.query(Subproject).filter(Subproject.id == subproject_id).first()
+    if not subproject or subproject.project.owner_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Subproject not found")
+    
+    return subproject.labor_items
+
 @router.post("/{subproject_id}/labor", response_model=LaborItemSchema)
 def create_labor_item(
     subproject_id: int,
@@ -278,6 +291,19 @@ def delete_labor_item(
 
 # Permit Items CRUD
 
+@router.get("/{subproject_id}/permits", response_model=List[PermitItemSchema])
+def get_permit_items(
+    subproject_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    # Verify subproject access
+    subproject = db.query(Subproject).filter(Subproject.id == subproject_id).first()
+    if not subproject or subproject.project.owner_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Subproject not found")
+    
+    return subproject.permit_items
+
 @router.post("/{subproject_id}/permits", response_model=PermitItemSchema)
 def create_permit_item(
     subproject_id: int,
@@ -331,6 +357,19 @@ def delete_permit_item(
     return {"message": "Permit item deleted successfully"}
 
 # Other Cost Items CRUD
+
+@router.get("/{subproject_id}/other-costs", response_model=List[OtherCostItemSchema])
+def get_other_cost_items(
+    subproject_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    # Verify subproject access
+    subproject = db.query(Subproject).filter(Subproject.id == subproject_id).first()
+    if not subproject or subproject.project.owner_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Subproject not found")
+    
+    return subproject.other_cost_items
 
 @router.post("/{subproject_id}/other-costs", response_model=OtherCostItemSchema)
 def create_other_cost_item(

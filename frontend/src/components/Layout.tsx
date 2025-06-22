@@ -44,14 +44,14 @@ const Layout = () => {
               <X className="h-6 w-6 text-white" />
             </button>
           </div>
-          <SidebarContent navigation={navigation} isActive={isActive} user={user} logout={logout} />
+          <SidebarContent navigation={navigation} isActive={isActive} user={user} logout={logout} closeSidebar={() => setSidebarOpen(false)} />
         </div>
       </div>
 
       {/* Desktop sidebar */}
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0">
         <div className="flex-1 flex flex-col min-h-0 nav-primary border-r border-primary-700">
-          <SidebarContent navigation={navigation} isActive={isActive} user={user} logout={logout} />
+          <SidebarContent navigation={navigation} isActive={isActive} user={user} logout={logout} closeSidebar={() => setSidebarOpen(false)} />
         </div>
       </div>
 
@@ -81,11 +81,11 @@ const Layout = () => {
   )
 }
 
-const SidebarContent = ({ navigation, isActive, user, logout }: any) => {
+const SidebarContent = ({ navigation, isActive, user, logout, closeSidebar }: any) => {
   return (
     <>
       <div className="flex items-center h-24 flex-shrink-0 px-4 py-4 bg-primary-600">
-        <Link to="/" className="flex items-center">
+        <Link to="/" onClick={closeSidebar} className="flex items-center">
           <img 
             src="/images/logos/logo-dark-mode.png" 
             alt="BuildCraftPro" 
@@ -101,6 +101,7 @@ const SidebarContent = ({ navigation, isActive, user, logout }: any) => {
               <Link
                 key={item.name}
                 to={item.href}
+                onClick={closeSidebar}
                 className={`${
                   isActive(item.href)
                     ? 'bg-accent-500 text-white shadow-sm'

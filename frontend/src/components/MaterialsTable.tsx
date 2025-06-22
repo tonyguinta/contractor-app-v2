@@ -23,6 +23,7 @@ import ConfirmDeleteModal from './ConfirmDeleteModal'
 interface MaterialsTableProps {
   subproject: SubprojectWithItems
   onUpdate: () => void
+  onCostChange?: (totalCost: number) => void
 }
 
 interface EditingRow {
@@ -30,7 +31,7 @@ interface EditingRow {
   data: Partial<MaterialItem>
 }
 
-const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
+const MaterialsTable = ({ subproject, onUpdate, onCostChange }: MaterialsTableProps) => {
   const [materials, setMaterials] = useState<MaterialItem[]>(subproject.material_items)
   const [editingRow, setEditingRow] = useState<EditingRow | null>(null)
   const [materialSuggestions, setMaterialSuggestions] = useState<MaterialEntry[]>([])
@@ -46,6 +47,12 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
   useEffect(() => {
     setMaterials(subproject.material_items)
   }, [subproject.material_items])
+
+  // Calculate and report total cost whenever materials change
+  useEffect(() => {
+    const totalCost = materials.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0)
+    onCostChange?.(totalCost)
+  }, [materials, onCostChange])
 
   // Focus description input when starting to edit a new material
   useEffect(() => {
@@ -309,11 +316,11 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
               })}
               type="number"
               step="0.01"
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500 text-right"
             />
           )
         }
-        return <span>{getValue()}</span>
+        return <span className="text-right block">{getValue()}</span>
       },
     }),
     columnHelper.accessor('unit_cost', {
@@ -330,11 +337,11 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
               })}
               type="number"
               step="0.01"
-              className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-2 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-primary-500 text-right"
             />
           )
         }
-        return <span>{formatCurrency(getValue())}</span>
+        return <span className="text-right block">{formatCurrency(getValue())}</span>
       },
     }),
     columnHelper.accessor('category', {
@@ -363,10 +370,10 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
         if (isEditing) {
           const quantity = watch('quantity') || 0
           const unitCost = watch('unit_cost') || 0
-          return <span className="font-medium">{formatCurrency(calculateTotal(quantity, unitCost))}</span>
+          return <span className="font-medium text-right block">{formatCurrency(calculateTotal(quantity, unitCost))}</span>
         }
         return (
-          <span className="font-medium">
+          <span className="font-medium text-right block">
             {formatCurrency(calculateTotal(row.original.quantity, row.original.unit_cost))}
           </span>
         )
@@ -476,17 +483,22 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
           <thead className="bg-gray-50">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th
-                    key={header.id}
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())
-                    }
-                  </th>
-                ))}
+                {headerGroup.headers.map(header => {
+                  const isNumericColumn = ['quantity', 'unit_cost', 'total'].includes(header.id)
+                  return (
+                    <th
+                      key={header.id}
+                      className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                        isNumericColumn ? 'text-right' : 'text-left'
+                      }`}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())
+                      }
+                    </th>
+                  )
+                })}
               </tr>
             ))}
           </thead>
