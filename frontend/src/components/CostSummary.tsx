@@ -1,5 +1,3 @@
-import React from 'react'
-
 interface CostSummaryProps {
   materialsCost: number
   laborCost: number
