@@ -25,6 +25,12 @@ BuildCraftPro features a professional construction industry aesthetic with a car
 - **User Authentication**: Secure JWT-based authentication
 - **Client Management**: Store and manage client information
 - **Project Management**: Create and track projects with detailed cost breakdowns
+- **Subproject Cost Tracking**: Comprehensive cost estimation system with:
+  - Materials tracking with autocomplete and real-time calculations
+  - Labor cost management with worker roles and hourly rates
+  - Permits tracking with dates and expiration management
+  - Other costs categorization and tracking
+  - Real-time cost summaries and rollups
 - **Task Management**: Assign and track tasks within projects
 - **Invoice Generation**: Create and manage invoices with tax calculations
 - **Dashboard**: Overview of projects, clients, invoices, and revenue metrics
@@ -43,6 +49,8 @@ BuildCraftPro features a professional construction industry aesthetic with a car
 ### Frontend
 - **React**: JavaScript library for building user interfaces
 - **TypeScript**: Typed JavaScript for better developer experience
+- **TanStack Table**: High-performance table component for complex data display
+- **React Hook Form**: Form validation and state management
 - **Tailwind CSS**: Utility-first CSS framework with custom BuildCraftPro color palette
 - **Vite**: Next-generation frontend build tool
 - **React Router**: Declarative routing for React
@@ -197,7 +205,12 @@ The application uses the following main entities:
 
 - **Users**: Contractor authentication and profile
 - **Clients**: Customer information and contact details
-- **Projects**: Construction projects with cost tracking
+- **Projects**: Construction projects with comprehensive cost tracking
+- **Subprojects**: Project subdivisions (e.g., "Kitchen Remodel", "Deck Construction")
+- **Material Items**: Detailed materials tracking with quantities, costs, and autocomplete
+- **Labor Items**: Worker roles, rates, hours, and calculated costs
+- **Permit Items**: Permit costs, dates, and expiration tracking
+- **Other Cost Items**: Miscellaneous project expenses
 - **Tasks**: Project tasks with time tracking
 - **Invoices**: Billing with tax calculations and payment status
 
@@ -272,7 +285,15 @@ For production deployment, consider these upgrades:
 
 ## Roadmap
 
+### Recently Completed
+- **Subproject Cost Tracking**: Comprehensive cost estimation system with Materials, Labor, Permits, and Other Costs tables
+- **TanStack Table Integration**: High-performance editable tables with inline editing and real-time calculations
+- **React Hook Form**: Advanced form validation and state management for complex data entry
+- **Real-time Cost Calculations**: Live cost rollups and summaries across all cost categories
+- **Material Autocomplete**: Debounced search with reusable material entries for efficiency
+
 ### Coming Soon
+- **Subproject Management UI**: Modal-based creation and editing of subprojects with status tracking
 - **Enhanced Login UX**: When logging in with non-existent email, present user with helpful message and option to register instead of generic error
 - **Form Privacy Enhancement**: Prevent browser auto-fill/auto-complete on sensitive business forms (client details, project information) to maintain data privacy
 - **Phone Number Formatting**: Auto-format phone numbers during input and store them in consistent format (e.g., (555) 123-4567) across all forms and displays
