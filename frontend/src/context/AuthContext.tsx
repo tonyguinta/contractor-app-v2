@@ -63,31 +63,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [])
 
   const login = async (email: string, password: string) => {
-    try {
-      const response = await api.post('/auth/login', { email, password })
-      const { access_token } = response.data
-      
-      localStorage.setItem('token', access_token)
-      api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
-      
-      // Fetch current user data
-      const userResponse = await api.get('/auth/me')
-      setUser(userResponse.data)
-    } catch (error) {
-      throw error
-    }
+    const response = await api.post('/auth/login', { email, password })
+    const { access_token } = response.data
+    
+    localStorage.setItem('token', access_token)
+    api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+    
+    // Fetch current user data
+    const userResponse = await api.get('/auth/me')
+    setUser(userResponse.data)
   }
 
   const register = async (userData: RegisterData) => {
-    try {
-      const response = await api.post('/auth/register', userData)
-      setUser(response.data)
-      
-      // Auto-login after registration
-      await login(userData.email, userData.password)
-    } catch (error) {
-      throw error
-    }
+    const response = await api.post('/auth/register', userData)
+    setUser(response.data)
+    
+    // Auto-login after registration
+    await login(userData.email, userData.password)
   }
 
   const logout = () => {

@@ -1,0 +1,35 @@
+{
+  "root": true,
+  "env": { 
+    "browser": true, 
+    "es2020": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended"
+  ],
+  "ignorePatterns": ["dist", "node_modules"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "react-refresh", "unused-imports"],
+  "rules": {
+    "react-refresh/only-export-components": [
+      "warn",
+      { "allowConstantExport": true }
+    ],
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": [
+      "error",
+      { 
+        "vars": "all", 
+        "varsIgnorePattern": "^_", 
+        "args": "after-used", 
+        "argsIgnorePattern": "^_" 
+      }
+    ],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "prefer-const": "error",
+    "no-var": "error"
+  }
+} 

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Frontend linting and type checking
+cd frontend
+echo "🔍 Running TypeScript type check..."
+npm run type-check
+
+echo "🧹 Running ESLint..."
+npm run lint
+
+echo "✅ Pre-commit checks passed!"
