@@ -73,6 +73,7 @@ class Project(Base):
     client = relationship("Client", back_populates="projects")
     tasks = relationship("Task", back_populates="project")
     invoices = relationship("Invoice", back_populates="project")
+    subprojects = relationship("Subproject", back_populates="project")
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -121,4 +122,120 @@ class Invoice(Base):
     # Relationships
     owner = relationship("User", back_populates="invoices")
     client = relationship("Client", back_populates="invoices")
-    project = relationship("Project", back_populates="invoices") 
+    project = relationship("Project", back_populates="invoices")
+
+
+# New models for subproject cost tracking
+
+class Subproject(Base):
+    __tablename__ = "subprojects"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    description = Column(Text)
+    start_date = Column(DateTime)
+    end_date = Column(DateTime)
+    status = Column(String, default="planning")  # planning, in_progress, completed
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Foreign key
+    project_id = Column(Integer, ForeignKey("projects.id"))
+
+    # Relationships
+    project = relationship("Project", back_populates="subprojects")
+    material_items = relationship("MaterialItem", back_populates="subproject", cascade="all, delete-orphan")
+    labor_items = relationship("LaborItem", back_populates="subproject", cascade="all, delete-orphan")
+    permit_items = relationship("PermitItem", back_populates="subproject", cascade="all, delete-orphan")
+    other_cost_items = relationship("OtherCostItem", back_populates="subproject", cascade="all, delete-orphan")
+
+
+class MaterialEntry(Base):
+    """Global material entries for autocomplete"""
+    __tablename__ = "material_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    description = Column(String, index=True)
+    unit = Column(String)
+    category = Column(String)
+    unit_price = Column(Float)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Foreign key
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    # Relationships
+    user = relationship("User")
+
+
+class MaterialItem(Base):
+    __tablename__ = "material_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    description = Column(String)
+    unit = Column(String)
+    quantity = Column(Float)
+    unit_cost = Column(Float)
+    category = Column(String)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Foreign key
+    subproject_id = Column(Integer, ForeignKey("subprojects.id"))
+
+    # Relationships
+    subproject = relationship("Subproject", back_populates="material_items")
+
+
+class LaborItem(Base):
+    __tablename__ = "labor_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    role = Column(String)
+    number_of_workers = Column(Integer)
+    hourly_rate = Column(Float)
+    hours = Column(Float)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Foreign key
+    subproject_id = Column(Integer, ForeignKey("subprojects.id"))
+
+    # Relationships
+    subproject = relationship("Subproject", back_populates="labor_items")
+
+
+class PermitItem(Base):
+    __tablename__ = "permit_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    description = Column(String)
+    cost = Column(Float)
+    issued_date = Column(DateTime)
+    expiration_date = Column(DateTime)
+    notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Foreign key
+    subproject_id = Column(Integer, ForeignKey("subprojects.id"))
+
+    # Relationships
+    subproject = relationship("Subproject", back_populates="permit_items")
+
+
+class OtherCostItem(Base):
+    __tablename__ = "other_cost_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    description = Column(String)
+    cost = Column(Float)
+    notes = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Foreign key
+    subproject_id = Column(Integer, ForeignKey("subprojects.id"))
+
+    # Relationships
+    subproject = relationship("Subproject", back_populates="other_cost_items") 

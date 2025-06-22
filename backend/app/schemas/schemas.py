@@ -160,4 +160,169 @@ class ProjectWithClient(Project):
 
 class InvoiceWithClient(Invoice):
     client: Client
-    project: Optional[Project] = None 
+    project: Optional[Project] = None
+
+# Subproject schemas
+
+class SubprojectBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    status: Optional[Literal["planning", "in_progress", "completed"]] = "planning"
+
+class SubprojectCreate(SubprojectBase):
+    project_id: int
+
+class SubprojectUpdate(SubprojectBase):
+    title: Optional[str] = None
+
+class Subproject(SubprojectBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+    project_id: int
+
+    class Config:
+        from_attributes = True
+
+# Material Entry schemas (for autocomplete)
+
+class MaterialEntryBase(BaseModel):
+    description: str
+    unit: str
+    category: Optional[str] = None
+    unit_price: Optional[float] = None
+
+class MaterialEntryCreate(MaterialEntryBase):
+    pass
+
+class MaterialEntry(MaterialEntryBase):
+    id: int
+    created_at: datetime
+    user_id: int
+
+    class Config:
+        from_attributes = True
+
+# Material Item schemas
+
+class MaterialItemBase(BaseModel):
+    description: str
+    unit: str
+    quantity: float
+    unit_cost: float
+    category: Optional[str] = None
+
+class MaterialItemCreate(MaterialItemBase):
+    subproject_id: int
+
+class MaterialItemUpdate(MaterialItemBase):
+    description: Optional[str] = None
+    unit: Optional[str] = None
+    quantity: Optional[float] = None
+    unit_cost: Optional[float] = None
+
+class MaterialItem(MaterialItemBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+    subproject_id: int
+
+    class Config:
+        from_attributes = True
+
+# Labor Item schemas
+
+class LaborItemBase(BaseModel):
+    role: str
+    number_of_workers: int
+    hourly_rate: float
+    hours: float
+
+class LaborItemCreate(LaborItemBase):
+    subproject_id: int
+
+class LaborItemUpdate(LaborItemBase):
+    role: Optional[str] = None
+    number_of_workers: Optional[int] = None
+    hourly_rate: Optional[float] = None
+    hours: Optional[float] = None
+
+class LaborItem(LaborItemBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+    subproject_id: int
+
+    class Config:
+        from_attributes = True
+
+# Permit Item schemas
+
+class PermitItemBase(BaseModel):
+    description: str
+    cost: float
+    issued_date: Optional[datetime] = None
+    expiration_date: Optional[datetime] = None
+    notes: Optional[str] = None
+
+class PermitItemCreate(PermitItemBase):
+    subproject_id: int
+
+class PermitItemUpdate(PermitItemBase):
+    description: Optional[str] = None
+    cost: Optional[float] = None
+
+class PermitItem(PermitItemBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+    subproject_id: int
+
+    class Config:
+        from_attributes = True
+
+# Other Cost Item schemas
+
+class OtherCostItemBase(BaseModel):
+    description: str
+    cost: float
+    notes: Optional[str] = None
+
+class OtherCostItemCreate(OtherCostItemBase):
+    subproject_id: int
+
+class OtherCostItemUpdate(OtherCostItemBase):
+    description: Optional[str] = None
+    cost: Optional[float] = None
+
+class OtherCostItem(OtherCostItemBase):
+    id: int
+    created_at: datetime
+    updated_at: Optional[datetime]
+    subproject_id: int
+
+    class Config:
+        from_attributes = True
+
+# Detailed response schemas with nested data
+
+class SubprojectWithItems(Subproject):
+    material_items: List[MaterialItem] = []
+    labor_items: List[LaborItem] = []
+    permit_items: List[PermitItem] = []
+    other_cost_items: List[OtherCostItem] = []
+
+class ProjectWithSubprojects(Project):
+    client: Client
+    subprojects: List[SubprojectWithItems] = []
+
+# Cost summary schemas
+
+class CostSummary(BaseModel):
+    total_materials: float
+    total_labor: float
+    total_permits: float
+    total_other: float
+    estimated_total: float 

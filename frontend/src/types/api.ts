@@ -227,4 +227,187 @@ export interface PaginatedResponse<T> {
   page: number
   per_page: number
   pages: number
+}
+
+// Subproject Types
+export type SubprojectStatus = "planning" | "in_progress" | "completed"
+
+export interface Subproject {
+  id: number
+  title: string
+  description: string | null
+  start_date: string | null
+  end_date: string | null
+  status: SubprojectStatus
+  created_at: string
+  updated_at: string | null
+  project_id: number
+}
+
+export interface SubprojectCreate {
+  title: string
+  project_id: number
+  description?: string | null
+  start_date?: string | null
+  end_date?: string | null
+  status?: SubprojectStatus
+}
+
+export interface SubprojectUpdate {
+  title?: string | null
+  description?: string | null
+  start_date?: string | null
+  end_date?: string | null
+  status?: SubprojectStatus
+}
+
+// Material Entry Types (for autocomplete)
+export interface MaterialEntry {
+  id: number
+  description: string
+  unit: string
+  category: string | null
+  unit_price: number | null
+  created_at: string
+  user_id: number
+}
+
+export interface MaterialEntryCreate {
+  description: string
+  unit: string
+  category?: string | null
+  unit_price?: number | null
+}
+
+// Material Item Types
+export interface MaterialItem {
+  id: number
+  description: string
+  unit: string
+  quantity: number
+  unit_cost: number
+  category: string | null
+  created_at: string
+  updated_at: string | null
+  subproject_id: number
+}
+
+export interface MaterialItemCreate {
+  description: string
+  unit: string
+  quantity: number
+  unit_cost: number
+  subproject_id: number
+  category?: string | null
+}
+
+export interface MaterialItemUpdate {
+  description?: string | null
+  unit?: string | null
+  quantity?: number | null
+  unit_cost?: number | null
+  category?: string | null
+}
+
+// Labor Item Types
+export interface LaborItem {
+  id: number
+  role: string
+  number_of_workers: number
+  hourly_rate: number
+  hours: number
+  created_at: string
+  updated_at: string | null
+  subproject_id: number
+}
+
+export interface LaborItemCreate {
+  role: string
+  number_of_workers: number
+  hourly_rate: number
+  hours: number
+  subproject_id: number
+}
+
+export interface LaborItemUpdate {
+  role?: string | null
+  number_of_workers?: number | null
+  hourly_rate?: number | null
+  hours?: number | null
+}
+
+// Permit Item Types
+export interface PermitItem {
+  id: number
+  description: string
+  cost: number
+  issued_date: string | null
+  expiration_date: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string | null
+  subproject_id: number
+}
+
+export interface PermitItemCreate {
+  description: string
+  cost: number
+  subproject_id: number
+  issued_date?: string | null
+  expiration_date?: string | null
+  notes?: string | null
+}
+
+export interface PermitItemUpdate {
+  description?: string | null
+  cost?: number | null
+  issued_date?: string | null
+  expiration_date?: string | null
+  notes?: string | null
+}
+
+// Other Cost Item Types
+export interface OtherCostItem {
+  id: number
+  description: string
+  cost: number
+  notes: string | null
+  created_at: string
+  updated_at: string | null
+  subproject_id: number
+}
+
+export interface OtherCostItemCreate {
+  description: string
+  cost: number
+  subproject_id: number
+  notes?: string | null
+}
+
+export interface OtherCostItemUpdate {
+  description?: string | null
+  cost?: number | null
+  notes?: string | null
+}
+
+// Detailed response types with nested data
+export interface SubprojectWithItems extends Subproject {
+  material_items: MaterialItem[]
+  labor_items: LaborItem[]
+  permit_items: PermitItem[]
+  other_cost_items: OtherCostItem[]
+}
+
+export interface ProjectWithSubprojects extends Project {
+  client: Client
+  subprojects: SubprojectWithItems[]
+}
+
+// Cost summary types
+export interface CostSummary {
+  total_materials: number
+  total_labor: number
+  total_permits: number
+  total_other: number
+  estimated_total: number
 } 

@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Folder } from 'lucide-react'
 import { projectsApi } from '../api/client'
 import { ProjectWithClient, ApiError } from '../types/api'
 import toast from 'react-hot-toast'
 import ProjectModal from '../components/ProjectModal'
-import ProjectDetailView from '../components/ProjectDetailView'
 
 const Projects = () => {
+  const navigate = useNavigate()
   const [projects, setProjects] = useState<ProjectWithClient[]>([])
   const [loading, setLoading] = useState(true)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<ProjectWithClient | null>(null)
 
   useEffect(() => {
     fetchProjects()
@@ -49,12 +49,7 @@ const Projects = () => {
   }
 
   const handleViewProject = (project: ProjectWithClient) => {
-    setSelectedProject(project)
-  }
-
-  const handleBackToProjects = () => {
-    setSelectedProject(null)
-    fetchProjects() // Refresh projects when returning
+    navigate(`/projects/${project.id}`)
   }
 
   const handleCloseModal = () => {
@@ -69,16 +64,7 @@ const Projects = () => {
     )
   }
 
-  // Show project detail view if a project is selected
-  if (selectedProject) {
-    return (
-      <ProjectDetailView
-        project={selectedProject}
-        onBack={handleBackToProjects}
-        onProjectUpdate={handleBackToProjects}
-      />
-    )
-  }
+
 
   return (
     <div className="space-y-6">

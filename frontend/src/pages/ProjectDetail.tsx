@@ -1,0 +1,391 @@
+import { useState, useEffect, useMemo } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react'
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  createColumnHelper,
+  ColumnDef,
+} from '@tanstack/react-table'
+import { useForm } from 'react-hook-form'
+import { projectsApi, subprojectsApi } from '../api/client'
+import {
+  ProjectWithClient,
+  SubprojectWithItems,
+  MaterialItem,
+  LaborItem,
+  PermitItem,
+  OtherCostItem,
+  CostSummary,
+  ApiError
+} from '../types/api'
+import toast from 'react-hot-toast'
+import LoadingSpinner from '../components/LoadingSpinner'
+
+const ProjectDetail = () => {
+  const { projectId } = useParams<{ projectId: string }>()
+  const navigate = useNavigate()
+  const [project, setProject] = useState<ProjectWithClient | null>(null)
+  const [subprojects, setSubprojects] = useState<SubprojectWithItems[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'overview' | 'subprojects'>('overview')
+
+  useEffect(() => {
+    if (projectId) {
+      fetchProjectData()
+    }
+  }, [projectId])
+
+  const fetchProjectData = async () => {
+    if (!projectId) return
+    
+    try {
+      setLoading(true)
+      const [projectResponse, subprojectsResponse] = await Promise.all([
+        projectsApi.getById(parseInt(projectId)),
+        subprojectsApi.getByProject(parseInt(projectId))
+      ])
+      
+      setProject(projectResponse.data)
+      setSubprojects(subprojectsResponse.data)
+    } catch (error: any) {
+      const apiError = error.response?.data as ApiError
+      const message = apiError?.detail || 'Failed to fetch project details'
+      toast.error(message)
+      navigate('/projects')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const calculateProjectTotals = () => {
+    const totals = subprojects.reduce(
+      (acc, subproject) => {
+        const materialTotal = subproject.material_items.reduce(
+          (sum, item) => sum + (item.quantity * item.unit_cost), 0
+        )
+        const laborTotal = subproject.labor_items.reduce(
+          (sum, item) => sum + (item.number_of_workers * item.hourly_rate * item.hours), 0
+        )
+        const permitTotal = subproject.permit_items.reduce(
+          (sum, item) => sum + item.cost, 0
+        )
+        const otherTotal = subproject.other_cost_items.reduce(
+          (sum, item) => sum + item.cost, 0
+        )
+
+        return {
+          materials: acc.materials + materialTotal,
+          labor: acc.labor + laborTotal,
+          permits: acc.permits + permitTotal,
+          other: acc.other + otherTotal,
+        }
+      },
+      { materials: 0, labor: 0, permits: 0, other: 0 }
+    )
+
+    return {
+      ...totals,
+      total: totals.materials + totals.labor + totals.permits + totals.other
+    }
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
+  }
+
+  const formatStatus = (status: string) => {
+    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'planning':
+        return 'bg-gray-100 text-gray-800'
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800'
+      case 'completed':
+        return 'bg-green-100 text-green-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  if (loading) {
+    return <LoadingSpinner />
+  }
+
+  if (!project) {
+    return (
+      <div className="text-center py-12">
+        <h3 className="text-lg font-medium text-gray-900">Project not found</h3>
+        <button
+          onClick={() => navigate('/projects')}
+          className="mt-4 btn-primary"
+        >
+          Back to Projects
+        </button>
+      </div>
+    )
+  }
+
+  const projectTotals = calculateProjectTotals()
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => navigate('/projects')}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <ArrowLeft className="h-6 w-6" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{project.title}</h1>
+            <p className="text-gray-600">Client: {project.client.name}</p>
+          </div>
+        </div>
+        <div className="flex space-x-3">
+          <button className="btn-secondary inline-flex items-center">
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Project
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'overview'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('subprojects')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'subprojects'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Subprojects ({subprojects.length})
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'overview' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Project Details */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Project Details</h3>
+              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                {formatStatus(project.status)}
+              </span>
+            </div>
+            
+            {project.description && (
+              <div className="mb-4">
+                <p className="text-sm text-gray-600">{project.description}</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <p className="text-gray-500">Start Date</p>
+                <p className="font-medium text-gray-900">
+                  {project.start_date ? new Date(project.start_date).toLocaleDateString() : 'Not set'}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">End Date</p>
+                <p className="font-medium text-gray-900">
+                  {project.end_date ? new Date(project.end_date).toLocaleDateString() : 'Not set'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Cost Summary */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Cost Summary</h3>
+            
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Materials</span>
+                <span className="text-sm font-medium">{formatCurrency(projectTotals.materials)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Labor</span>
+                <span className="text-sm font-medium">{formatCurrency(projectTotals.labor)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Permits</span>
+                <span className="text-sm font-medium">{formatCurrency(projectTotals.permits)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Other Costs</span>
+                <span className="text-sm font-medium">{formatCurrency(projectTotals.other)}</span>
+              </div>
+              <div className="border-t pt-3">
+                <div className="flex justify-between">
+                  <span className="font-medium text-gray-900">Total Estimated Cost</span>
+                  <span className="font-bold text-lg text-gray-900">{formatCurrency(projectTotals.total)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'subprojects' && (
+        <div className="space-y-6">
+          {/* Subprojects Header */}
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium text-gray-900">Subprojects</h3>
+            <button className="btn-primary inline-flex items-center">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Subproject
+            </button>
+          </div>
+
+          {/* Subprojects List */}
+          {subprojects.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-lg shadow">
+              <h3 className="text-sm font-medium text-gray-900">No subprojects</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating your first subproject.</p>
+              <div className="mt-6">
+                <button className="btn-primary">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Subproject
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {subprojects.map((subproject) => (
+                <SubprojectCard
+                  key={subproject.id}
+                  subproject={subproject}
+                  onUpdate={fetchProjectData}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Subproject Card Component
+interface SubprojectCardProps {
+  subproject: SubprojectWithItems
+  onUpdate: () => void
+}
+
+const SubprojectCard = ({ subproject, onUpdate }: SubprojectCardProps) => {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const calculateSubprojectTotal = () => {
+    const materialTotal = subproject.material_items.reduce(
+      (sum, item) => sum + (item.quantity * item.unit_cost), 0
+    )
+    const laborTotal = subproject.labor_items.reduce(
+      (sum, item) => sum + (item.number_of_workers * item.hourly_rate * item.hours), 0
+    )
+    const permitTotal = subproject.permit_items.reduce(
+      (sum, item) => sum + item.cost, 0
+    )
+    const otherTotal = subproject.other_cost_items.reduce(
+      (sum, item) => sum + item.cost, 0
+    )
+
+    return materialTotal + laborTotal + permitTotal + otherTotal
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
+  }
+
+  const formatStatus = (status: string) => {
+    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'planning':
+        return 'bg-gray-100 text-gray-800'
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800'
+      case 'completed':
+        return 'bg-green-100 text-green-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow">
+      <div className="p-6">
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <div className="flex items-center space-x-3">
+              <h4 className="text-lg font-medium text-gray-900">{subproject.title}</h4>
+              <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(subproject.status)}`}>
+                {formatStatus(subproject.status)}
+              </span>
+            </div>
+            {subproject.description && (
+              <p className="mt-1 text-sm text-gray-600">{subproject.description}</p>
+            )}
+            <div className="mt-2 text-sm text-gray-500">
+              Total Cost: <span className="font-medium text-gray-900">{formatCurrency(calculateSubprojectTotal())}</span>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <button className="text-gray-400 hover:text-gray-600">
+              <Edit className="h-4 w-4" />
+            </button>
+            <button className="text-gray-400 hover:text-red-600">
+              <Trash2 className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="btn-secondary text-sm"
+            >
+              {isExpanded ? 'Collapse' : 'Expand'}
+            </button>
+          </div>
+        </div>
+
+        {isExpanded && (
+          <div className="mt-6 space-y-6">
+            {/* Cost Tables will go here */}
+            <div className="text-center py-8 text-gray-500">
+              Cost tracking tables will be implemented here with TanStack Table
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default ProjectDetail 

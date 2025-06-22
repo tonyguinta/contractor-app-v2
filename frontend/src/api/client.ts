@@ -5,7 +5,14 @@ import {
   Project, ProjectCreate, ProjectUpdate, ProjectWithClient,
   Invoice, InvoiceCreate, InvoiceUpdate, InvoiceWithClient,
   Task, TaskCreate, TaskUpdate,
-  User, UserCreate, UserLogin, Token
+  User, UserCreate, UserLogin, Token,
+  Subproject, SubprojectCreate, SubprojectUpdate, SubprojectWithItems,
+  MaterialEntry, MaterialEntryCreate,
+  MaterialItem, MaterialItemCreate, MaterialItemUpdate,
+  LaborItem, LaborItemCreate, LaborItemUpdate,
+  PermitItem, PermitItemCreate, PermitItemUpdate,
+  OtherCostItem, OtherCostItemCreate, OtherCostItemUpdate,
+  CostSummary
 } from '../types/api'
 
 // Use environment variable for API URL, fallback to localhost for development
@@ -142,4 +149,61 @@ export const invoicesApi = {
     api.put(`/invoices/${id}/`, data),
   delete: (id: number): Promise<AxiosResponse<void>> => 
     api.delete(`/invoices/${id}/`),
+}
+
+// Subprojects API
+export const subprojectsApi = {
+  // Subproject CRUD
+  create: (data: SubprojectCreate): Promise<AxiosResponse<Subproject>> => 
+    api.post('/subprojects/', data),
+  getByProject: (projectId: number): Promise<AxiosResponse<SubprojectWithItems[]>> => 
+    api.get(`/subprojects/project/${projectId}`),
+  getById: (id: number): Promise<AxiosResponse<SubprojectWithItems>> => 
+    api.get(`/subprojects/${id}`),
+  update: (id: number, data: SubprojectUpdate): Promise<AxiosResponse<Subproject>> => 
+    api.put(`/subprojects/${id}`, data),
+  delete: (id: number): Promise<AxiosResponse<void>> => 
+    api.delete(`/subprojects/${id}`),
+  
+  // Material autocomplete
+  searchMaterials: (query: string, limit = 10): Promise<AxiosResponse<MaterialEntry[]>> => 
+    api.get('/subprojects/materials/search', { params: { q: query, limit } }),
+  createMaterialEntry: (data: MaterialEntryCreate): Promise<AxiosResponse<MaterialEntry>> => 
+    api.post('/subprojects/materials/entries', data),
+  
+  // Material items
+  createMaterial: (subprojectId: number, data: MaterialItemCreate): Promise<AxiosResponse<MaterialItem>> => 
+    api.post(`/subprojects/${subprojectId}/materials`, data),
+  updateMaterial: (id: number, data: MaterialItemUpdate): Promise<AxiosResponse<MaterialItem>> => 
+    api.put(`/subprojects/materials/${id}`, data),
+  deleteMaterial: (id: number): Promise<AxiosResponse<void>> => 
+    api.delete(`/subprojects/materials/${id}`),
+  
+  // Labor items
+  createLabor: (subprojectId: number, data: LaborItemCreate): Promise<AxiosResponse<LaborItem>> => 
+    api.post(`/subprojects/${subprojectId}/labor`, data),
+  updateLabor: (id: number, data: LaborItemUpdate): Promise<AxiosResponse<LaborItem>> => 
+    api.put(`/subprojects/labor/${id}`, data),
+  deleteLabor: (id: number): Promise<AxiosResponse<void>> => 
+    api.delete(`/subprojects/labor/${id}`),
+  
+  // Permit items
+  createPermit: (subprojectId: number, data: PermitItemCreate): Promise<AxiosResponse<PermitItem>> => 
+    api.post(`/subprojects/${subprojectId}/permits`, data),
+  updatePermit: (id: number, data: PermitItemUpdate): Promise<AxiosResponse<PermitItem>> => 
+    api.put(`/subprojects/permits/${id}`, data),
+  deletePermit: (id: number): Promise<AxiosResponse<void>> => 
+    api.delete(`/subprojects/permits/${id}`),
+  
+  // Other cost items
+  createOtherCost: (subprojectId: number, data: OtherCostItemCreate): Promise<AxiosResponse<OtherCostItem>> => 
+    api.post(`/subprojects/${subprojectId}/other-costs`, data),
+  updateOtherCost: (id: number, data: OtherCostItemUpdate): Promise<AxiosResponse<OtherCostItem>> => 
+    api.put(`/subprojects/other-costs/${id}`, data),
+  deleteOtherCost: (id: number): Promise<AxiosResponse<void>> => 
+    api.delete(`/subprojects/other-costs/${id}`),
+  
+  // Cost summary
+  getCostSummary: (subprojectId: number): Promise<AxiosResponse<CostSummary>> => 
+    api.get(`/subprojects/${subprojectId}/cost-summary`),
 } 
