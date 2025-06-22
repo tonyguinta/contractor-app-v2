@@ -24,7 +24,12 @@ This is a fullstack SaaS app for general contractors using:
 ✅ **Completed Core Features:**
 - User authentication (register/login with JWT)
 - Client management (CRUD operations)
-- Project management with cost tracking
+- Project management with comprehensive cost tracking
+- Subproject cost estimation system with Materials, Labor, Permits, and Other Costs
+- TanStack Table integration for high-performance editable tables
+- React Hook Form for complex form validation and state management
+- Real-time cost calculations and summaries
+- Material autocomplete with reusable entries
 - Task management within projects
 - Invoice generation with tax calculations
 - Dashboard with business metrics
@@ -60,15 +65,29 @@ Maintain a clear separation between:
 - All models inherit from SQLAlchemy Base
 - Use proper foreign key relationships
 - Include `created_at` timestamps with timezone awareness
-- Follow the User → Clients → Projects → Tasks/Invoices hierarchy
+- Follow the User → Clients → Projects → Subprojects → Cost Items hierarchy
+- Implement cascade deletes for data integrity
+- Use proper indexing for performance (user_id, project_id, subproject_id)
 
 ## Frontend Patterns
 
 - Use React functional components with hooks
+- Use TanStack Table for complex data tables with inline editing
+- Use React Hook Form for form validation and state management
+- Implement debounced calculations for real-time cost updates
 - Implement proper loading states and error handling
 - Use React Router for navigation
 - Store JWT in localStorage with automatic header injection
-- Use Tailwind CSS classes for styling (no custom CSS)
+- Use Tailwind CSS classes for styling with BuildCraftPro design system
+- Right-align all numeric columns in tables (currency, quantities, calculations)
+
+## Cost Tracking Architecture
+
+- Real-time frontend calculations with periodic backend persistence
+- Debounced API calls to prevent excessive server requests
+- Material autocomplete with global MaterialEntry table for reuse
+- Cascade cost calculations from items → subprojects → projects
+- Consistent currency formatting across all cost displays
 
 Avoid GraphQL, WebSocket, or complex state management for MVP.
 
