@@ -15,7 +15,7 @@ import {
   CostSummary
 } from '../types/api'
 
-// Use environment variable for API URL, with smart defaults
+// Use environment variable for API URL, with smart defaults for production
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (import.meta.env.MODE === 'production' 
     ? 'https://api.buildcraftpro.com/api' 
