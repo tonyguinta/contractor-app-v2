@@ -1,27 +1,17 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Plus, Edit, Trash2 } from 'lucide-react'
-import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
-  createColumnHelper,
-  ColumnDef,
-} from '@tanstack/react-table'
-import { useForm } from 'react-hook-form'
 import { projectsApi, subprojectsApi } from '../api/client'
 import {
   ProjectWithClient,
   SubprojectWithItems,
-  MaterialItem,
-  LaborItem,
-  PermitItem,
-  OtherCostItem,
-  CostSummary,
   ApiError
 } from '../types/api'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
+import MaterialsTable from '../components/MaterialsTable'
+import SubprojectModal from '../components/SubprojectModal'
+import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
 
 const ProjectDetail = () => {
   const { projectId } = useParams<{ projectId: string }>()
@@ -30,6 +20,12 @@ const ProjectDetail = () => {
   const [subprojects, setSubprojects] = useState<SubprojectWithItems[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'subprojects'>('overview')
+  const [isSubprojectModalOpen, setIsSubprojectModalOpen] = useState(false)
+  const [editingSubproject, setEditingSubproject] = useState<SubprojectWithItems | undefined>()
+  const [expandedSubprojects, setExpandedSubprojects] = useState<Set<number>>(new Set())
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [subprojectToDelete, setSubprojectToDelete] = useState<SubprojectWithItems | undefined>()
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -89,6 +85,75 @@ const ProjectDetail = () => {
       ...totals,
       total: totals.materials + totals.labor + totals.permits + totals.other
     }
+  }
+
+  const handleAddSubproject = () => {
+    setEditingSubproject(undefined)
+    setIsSubprojectModalOpen(true)
+  }
+
+  const handleEditSubproject = (subproject: SubprojectWithItems) => {
+    setEditingSubproject(subproject)
+    setIsSubprojectModalOpen(true)
+  }
+
+  const handleCloseSubprojectModal = () => {
+    setIsSubprojectModalOpen(false)
+    setEditingSubproject(undefined)
+  }
+
+  const handleSubprojectSuccess = () => {
+    fetchProjectData()
+  }
+
+  const handleToggleSubprojectExpand = (subprojectId: number) => {
+    setExpandedSubprojects(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(subprojectId)) {
+        newSet.delete(subprojectId)
+      } else {
+        newSet.add(subprojectId)
+      }
+      return newSet
+    })
+  }
+
+  const handleDeleteSubproject = (subproject: SubprojectWithItems) => {
+    setSubprojectToDelete(subproject)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!subprojectToDelete) return
+
+    try {
+      setDeleteLoading(true)
+      await subprojectsApi.delete(subprojectToDelete.id)
+      toast.success('Subproject deleted successfully')
+      fetchProjectData()
+      setIsDeleteModalOpen(false)
+      setSubprojectToDelete(undefined)
+    } catch (error: any) {
+      console.error('Delete subproject error:', error)
+      
+      let message = 'Failed to delete subproject'
+      if (error.response?.data) {
+        const errorData = error.response.data
+        if (typeof errorData.detail === 'string') {
+          message = errorData.detail
+        } else if (errorData.message) {
+          message = errorData.message
+        }
+      }
+      toast.error(message)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setSubprojectToDelete(undefined)
   }
 
   const formatCurrency = (amount: number) => {
@@ -256,7 +321,10 @@ const ProjectDetail = () => {
           {/* Subprojects Header */}
           <div className="flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900">Subprojects</h3>
-            <button className="btn-primary inline-flex items-center">
+            <button 
+              onClick={handleAddSubproject}
+              className="btn-primary inline-flex items-center"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Subproject
             </button>
@@ -268,7 +336,10 @@ const ProjectDetail = () => {
               <h3 className="text-sm font-medium text-gray-900">No subprojects</h3>
               <p className="mt-1 text-sm text-gray-500">Get started by creating your first subproject.</p>
               <div className="mt-6">
-                <button className="btn-primary">
+                <button 
+                  onClick={handleAddSubproject}
+                  className="btn-primary"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add Subproject
                 </button>
@@ -281,12 +352,38 @@ const ProjectDetail = () => {
                   key={subproject.id}
                   subproject={subproject}
                   onUpdate={fetchProjectData}
+                  onEdit={handleEditSubproject}
+                  onDelete={handleDeleteSubproject}
+                  isExpanded={expandedSubprojects.has(subproject.id)}
+                  onToggleExpand={handleToggleSubprojectExpand}
                 />
               ))}
             </div>
           )}
         </div>
       )}
+
+      {/* Subproject Modal */}
+      {projectId && (
+        <SubprojectModal
+          isOpen={isSubprojectModalOpen}
+          onClose={handleCloseSubprojectModal}
+          onSuccess={handleSubprojectSuccess}
+          projectId={parseInt(projectId)}
+          subproject={editingSubproject}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        title="Delete Subproject"
+        message={`Are you sure you want to delete "${subprojectToDelete?.title}"? This action cannot be undone and will also delete all associated materials, labor, permits, and other costs.`}
+        confirmText="Delete Subproject"
+        loading={deleteLoading}
+      />
     </div>
   )
 }
@@ -295,10 +392,13 @@ const ProjectDetail = () => {
 interface SubprojectCardProps {
   subproject: SubprojectWithItems
   onUpdate: () => void
+  onEdit: (subproject: SubprojectWithItems) => void
+  onDelete: (subproject: SubprojectWithItems) => void
+  isExpanded: boolean
+  onToggleExpand: (subprojectId: number) => void
 }
 
-const SubprojectCard = ({ subproject, onUpdate }: SubprojectCardProps) => {
-  const [isExpanded, setIsExpanded] = useState(false)
+const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, onToggleExpand }: SubprojectCardProps) => {
 
   const calculateSubprojectTotal = () => {
     const materialTotal = subproject.material_items.reduce(
@@ -345,12 +445,18 @@ const SubprojectCard = ({ subproject, onUpdate }: SubprojectCardProps) => {
     <div className="bg-white rounded-lg shadow">
       <div className="p-6">
         <div className="flex justify-between items-start">
-          <div className="flex-1">
+          <div 
+            className="flex-1 cursor-pointer"
+            onClick={() => onToggleExpand(subproject.id)}
+          >
             <div className="flex items-center space-x-3">
               <h4 className="text-lg font-medium text-gray-900">{subproject.title}</h4>
               <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(subproject.status)}`}>
                 {formatStatus(subproject.status)}
               </span>
+              <div className="text-gray-400">
+                {isExpanded ? '▼' : '▶'}
+              </div>
             </div>
             {subproject.description && (
               <p className="mt-1 text-sm text-gray-600">{subproject.description}</p>
@@ -360,26 +466,49 @@ const SubprojectCard = ({ subproject, onUpdate }: SubprojectCardProps) => {
             </div>
           </div>
           <div className="flex space-x-2">
-            <button className="text-gray-400 hover:text-gray-600">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation()
+                onEdit(subproject)
+              }}
+              className="text-gray-400 hover:text-gray-600"
+            >
               <Edit className="h-4 w-4" />
             </button>
-            <button className="text-gray-400 hover:text-red-600">
-              <Trash2 className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="btn-secondary text-sm"
+            <button 
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(subproject)
+              }}
+              className="text-gray-400 hover:text-red-600"
             >
-              {isExpanded ? 'Collapse' : 'Expand'}
+              <Trash2 className="h-4 w-4" />
             </button>
           </div>
         </div>
 
         {isExpanded && (
           <div className="mt-6 space-y-6">
-            {/* Cost Tables will go here */}
-            <div className="text-center py-8 text-gray-500">
-              Cost tracking tables will be implemented here with TanStack Table
+            {/* Materials Table */}
+            <MaterialsTable 
+              subproject={subproject} 
+              onUpdate={onUpdate} 
+            />
+            
+            {/* Placeholder for other cost tables */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h5 className="font-medium text-gray-900 mb-2">Labor</h5>
+                <p className="text-sm text-gray-500">Labor tracking table coming soon...</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h5 className="font-medium text-gray-900 mb-2">Permits</h5>
+                <p className="text-sm text-gray-500">Permits tracking table coming soon...</p>
+              </div>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h5 className="font-medium text-gray-900 mb-2">Other Costs</h5>
+              <p className="text-sm text-gray-500">Other costs tracking table coming soon...</p>
             </div>
           </div>
         )}
