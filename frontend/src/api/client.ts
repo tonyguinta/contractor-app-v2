@@ -40,6 +40,12 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    
+    // Debug: Log the actual request URL in production
+    if (import.meta.env.MODE === 'production') {
+      console.log('🔍 Making request to:', (config.baseURL || '') + (config.url || ''))
+    }
+    
     return config
   },
   (error) => {
