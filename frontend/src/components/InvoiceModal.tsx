@@ -2,8 +2,20 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { invoicesApi, clientsApi, projectsApi } from '../api/client'
-import { InvoiceWithClient, InvoiceCreate, Client, ProjectWithClient } from '../types/api'
+import { InvoiceWithClient, Client, ProjectWithClient } from '../types/api'
 import toast from 'react-hot-toast'
+
+// Form-specific interface for HTML form inputs (strings)
+interface InvoiceFormData {
+  title: string
+  description?: string
+  client_id: string
+  project_id?: string
+  amount: string
+  tax_rate: string
+  issue_date: string
+  due_date: string
+}
 
 interface InvoiceModalProps {
   isOpen: boolean
@@ -17,7 +29,7 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
   const [clients, setClients] = useState<Client[]>([])
   const [projects, setProjects] = useState<ProjectWithClient[]>([])
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null)
-  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<InvoiceCreate>()
+  const { register, handleSubmit, formState: { errors }, reset, setValue, watch } = useForm<InvoiceFormData>()
 
   const watchedClientId = watch('client_id')
 
@@ -32,10 +44,10 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
           // Then populate form with invoice data for editing
           setValue('title', invoice.title)
           setValue('description', invoice.description || '')
-          setValue('client_id', invoice.client_id)
+          setValue('client_id', invoice.client_id.toString())
           setValue('project_id', invoice.project_id?.toString() || '')
-          setValue('amount', invoice.amount)
-          setValue('tax_rate', invoice.tax_rate)
+          setValue('amount', invoice.amount.toString())
+          setValue('tax_rate', invoice.tax_rate.toString())
           setValue('issue_date', invoice.issue_date.split('T')[0])
           setValue('due_date', invoice.due_date.split('T')[0])
           setSelectedClientId(invoice.client_id)
@@ -49,8 +61,10 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
           reset({
             title: '',
             description: '',
-            amount: 0,
-            tax_rate: 0,
+            client_id: '',
+            project_id: '',
+            amount: '0',
+            tax_rate: '0',
             issue_date: today,
             due_date: dueDateStr
           })
@@ -71,7 +85,7 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
   // Backup effect to ensure client_id is set after clients are loaded
   useEffect(() => {
     if (invoice && clients.length > 0) {
-      setValue('client_id', invoice.client_id)
+      setValue('client_id', invoice.client_id.toString())
       setSelectedClientId(invoice.client_id)
     }
   }, [invoice, clients, setValue])
@@ -106,7 +120,7 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
     return projects.filter(project => project.client.id === selectedClientId)
   }
 
-  const onSubmit = async (data: InvoiceCreate) => {
+  const onSubmit = async (data: InvoiceFormData) => {
     setLoading(true)
     try {
       const invoiceData = {
