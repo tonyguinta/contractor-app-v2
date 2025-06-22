@@ -87,6 +87,14 @@ python3 -c "from app.db.database import engine; from app.models.models import Ba
 
 **IMPORTANT**: Always use `python3` instead of `python` on this system. The `python` command is not available.
 
+## Key Development Files
+
+Understanding these files helps navigate the codebase more effectively:
+- `setup.py` - Automated environment setup with dependency checking and cross-platform support
+- `run.py` - Backend server runner with proper virtual environment handling  
+- `TECHNICAL_DEBT.md` - Current architectural concerns and improvement priorities
+- `DATABASE_RESET_GUIDE.md` - Step-by-step database reset procedures for development issues
+
 ## Architecture Overview
 
 ### Core Data Hierarchy
@@ -121,6 +129,9 @@ python3 -c "from app.db.database import engine; from app.models.models import Ba
 - Production uses PostgreSQL - configured via Railway environment variables
 - DATABASE_URL environment variable switches between SQLite and PostgreSQL
 - Models are database-agnostic via SQLAlchemy ORM
+
+**Database Reset:**
+For development database issues, see `DATABASE_RESET_GUIDE.md` for step-by-step reset procedures.
 
 ## Key Development Patterns
 
@@ -199,6 +210,13 @@ python3 -c "from app.db.database import engine; from app.models.models import Ba
 
 ## Testing and Quality
 
+### Current Testing Status
+Currently no automated tests are implemented. When adding tests in the future:
+- **Frontend**: Consider Vitest + React Testing Library for component tests
+- **Backend**: Consider pytest for API endpoint tests  
+- Follow the established patterns in the codebase for consistency
+
+### Quality Checks
 Before committing changes, run:
 ```bash
 # Frontend quality checks
