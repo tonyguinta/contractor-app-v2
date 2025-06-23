@@ -16,6 +16,7 @@ import OtherCostsTable from '../components/OtherCostsTable'
 import CostSummary from '../components/CostSummary'
 import SubprojectModal from '../components/SubprojectModal'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
+import { useCostCalculation } from '../context/CostCalculationContext'
 
 const ProjectDetail = () => {
   const { projectId } = useParams<{ projectId: string }>()
@@ -376,12 +377,19 @@ interface SubprojectCardProps {
 }
 
 const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, onToggleExpand }: SubprojectCardProps) => {
-  const [materialsCost, setMaterialsCost] = useState(0)
+  const { getCost, setConfirmedCost } = useCostCalculation()
   const [laborCost, setLaborCost] = useState(0)
   const [permitsCost, setPermitsCost] = useState(0)
   const [otherCost, setOtherCost] = useState(0)
 
+  // Initialize confirmed costs from subproject data
+  useEffect(() => {
+    const materialTotal = subproject.material_items.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0)
+    setConfirmedCost(subproject.id.toString(), 'materials', materialTotal)
+  }, [subproject.material_items, subproject.id, setConfirmedCost])
+
   const calculateSubprojectTotal = () => {
+    const materialsCost = getCost(subproject.id.toString(), 'materials')
     return materialsCost + laborCost + permitsCost + otherCost
   }
 
@@ -459,7 +467,7 @@ const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, on
           <div className="mt-6 space-y-6">
             {/* Cost Summary */}
             <CostSummary
-              materialsCost={materialsCost}
+              materialsCost={getCost(subproject.id.toString(), 'materials')}
               laborCost={laborCost}
               permitsCost={permitsCost}
               otherCost={otherCost}
@@ -469,7 +477,6 @@ const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, on
             <MaterialsTable 
               subproject={subproject} 
               onUpdate={onUpdate}
-              onCostChange={setMaterialsCost}
             />
             
             {/* Labor Table */}

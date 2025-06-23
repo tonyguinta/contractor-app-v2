@@ -48,6 +48,11 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
+    // Skip processing for canceled requests (AbortController)
+    if (error.name === 'AbortError' || error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
+      return Promise.reject(error)
+    }
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/login'
@@ -169,8 +174,11 @@ export const subprojectsApi = {
     api.delete(`/subprojects/${id}`),
   
   // Material autocomplete
-  searchMaterials: (query: string, limit = 10): Promise<AxiosResponse<MaterialEntry[]>> => 
-    api.get('/subprojects/materials/search', { params: { q: query, limit } }),
+  searchMaterials: (query: string, config?: { limit?: number; signal?: AbortSignal }): Promise<AxiosResponse<MaterialEntry[]>> => 
+    api.get('/subprojects/materials/search', { 
+      params: { q: query, limit: config?.limit || 10 },
+      signal: config?.signal
+    }),
   createMaterialEntry: (data: MaterialEntryCreate): Promise<AxiosResponse<MaterialEntry>> => 
     api.post('/subprojects/materials/entries', data),
   
