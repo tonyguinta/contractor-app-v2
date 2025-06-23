@@ -5,43 +5,27 @@ import {
   flexRender,
   ColumnDef,
 } from '@tanstack/react-table'
-import { useForm } from 'react-hook-form'
 import { Plus } from 'lucide-react'
 import { subprojectsApi } from '../api/client'
 import {
   MaterialItem,
-  MaterialItemCreate,
-  MaterialItemUpdate,
-  MaterialEntry,
-  SubprojectWithItems,
-  ApiError
+  SubprojectWithItems
 } from '../types/api'
 import toast from 'react-hot-toast'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import { useCostCalculation } from '../context/CostCalculationContext'
 import MaterialModal from './MaterialModal'
-import { originalColumns, simplifiedColumns } from './materials-columns'
-
-// Feature flags for easy rollback
-const USE_MODAL_EDITING = true
-const USE_SIMPLIFIED_COLUMNS = true
+import { simplifiedColumns } from './materials-columns'
 
 interface MaterialsTableProps {
   subproject: SubprojectWithItems
   onUpdate: () => void
 }
 
-interface EditingRow {
-  id: number | 'new'
-  data: Partial<MaterialItem>
-}
 
 const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
   const [materials, setMaterials] = useState<MaterialItem[]>(subproject.material_items)
-  const [editingRow, setEditingRow] = useState<EditingRow | null>(null)
-  // Inline editing state (only used when not using modal - removed for cleanup)
-  
-  // Common state
+  // Delete confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [materialToDelete, setMaterialToDelete] = useState<MaterialItem | undefined>()
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -50,9 +34,6 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingMaterialForModal, setEditingMaterialForModal] = useState<MaterialItem | null>(null)
 
-  // Form handling (only used for inline editing when not using modal - removed for cleanup)  
-  // @ts-ignore - unused variables kept for rollback capability
-  const { watch, reset, setValue: _setValue } = useForm<MaterialItemCreate>()
   const { updateCost, getCost, isPending } = useCostCalculation()
 
   useEffect(() => {
@@ -74,64 +55,15 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
   // Focus and search effects removed - only needed for inline editing
 
   const handleAddNew = () => {
-    if (USE_MODAL_EDITING) {
-      setEditingMaterialForModal(null)
-      setIsModalOpen(true)
-    } else {
-      // Original inline editing logic (for rollback)
-      setEditingRow({
-        id: 'new',
-        data: {
-          description: '',
-          unit: 'each',
-          quantity: 1,
-          unit_cost: 0,
-          category: ''
-        }
-      })
-      reset({
-        description: '',
-        unit: 'each',
-        quantity: 1,
-        unit_cost: 0,
-        category: '',
-        subproject_id: subproject.id
-      })
-      
-      // Focus the description input after the component re-renders
-      // setTimeout(() => {
-      //   descriptionInputElement?.focus()
-      // }, 0)
-    }
+    setEditingMaterialForModal(null)
+    setIsModalOpen(true)
   }
 
   const handleEdit = (material: MaterialItem) => {
-    if (USE_MODAL_EDITING) {
-      setEditingMaterialForModal(material)
-      setIsModalOpen(true)
-    } else {
-      // Original inline editing logic (for rollback)
-      setEditingRow({
-        id: material.id,
-        data: material
-      })
-      reset({
-        description: material.description,
-        unit: material.unit,
-        quantity: material.quantity,
-        unit_cost: material.unit_cost,
-        category: material.category || '',
-        subproject_id: subproject.id
-      })
-    }
+    setEditingMaterialForModal(material)
+    setIsModalOpen(true)
   }
 
-  const handleCancel = () => {
-    setEditingRow(null)
-    reset()
-    // setSearchQuery('') - removed unused variable
-    // setMaterialSuggestions([]) - removed unused variable
-  }
 
   const handleModalSave = (material: MaterialItem) => {
     if (editingMaterialForModal) {
@@ -176,45 +108,7 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
     }
   }
 
-  // @ts-ignore - unused function kept for rollback capability
-  const _handleSave = async (data: MaterialItemCreate) => {
-    try {
-      // setLoading(true) - removed unused variable
-      
-      if (editingRow?.id === 'new') {
-        // Create new material
-        const response = await subprojectsApi.createMaterial(subproject.id, data)
-        setMaterials([response.data, ...materials]) // Add new material to the top
-        toast.success('Material added successfully')
-      } else if (editingRow?.id) {
-        // Update existing material
-        const updateData: MaterialItemUpdate = {
-          description: data.description,
-          unit: data.unit,
-          quantity: data.quantity,
-          unit_cost: data.unit_cost,
-          category: data.category
-        }
-        const response = await subprojectsApi.updateMaterial(editingRow.id as number, updateData)
-        setMaterials(materials.map(m => m.id === editingRow.id ? response.data : m))
-        toast.success('Material updated successfully')
-      }
-      
-      handleCancel()
-      onUpdate()
-    } catch (error: any) {
-      const apiError = error.response?.data as ApiError
-      const message = apiError?.detail || 'Failed to save material'
-      toast.error(message)
-    } finally {
-      // setLoading(false) - removed unused variable
-    }
-  }
 
-  const handleDeleteClick = (material: MaterialItem) => {
-    setMaterialToDelete(material)
-    setIsDeleteModalOpen(true)
-  }
 
   const handleConfirmDelete = async () => {
     if (!materialToDelete) return
@@ -250,12 +144,6 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
     setMaterialToDelete(undefined)
   }
 
-  // @ts-ignore - unused function kept for rollback capability
-  const _handleMaterialSelect = (material: MaterialEntry) => {
-    // setValue calls removed - function unused with modal editing
-    // Form logic kept for rollback capability
-    console.log('Material selected (inline editing mode):', material)
-  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -264,43 +152,16 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
     }).format(amount)
   }
 
-  // @ts-ignore - unused function kept for rollback capability
-  const _calculateTotal = (quantity: number, unitCost: number) => {
-    return quantity * unitCost
-  }
 
-  // Column definitions with rollback capability
+  // Column definitions
   const columns = useMemo<ColumnDef<MaterialItem, any>[]>(() => {
-    if (USE_SIMPLIFIED_COLUMNS) {
-      return simplifiedColumns()
-    } else {
-      return originalColumns(handleEdit, handleDeleteClick)
-    }
-  }, [USE_SIMPLIFIED_COLUMNS])
+    return simplifiedColumns()
+  }, [])
 
-  // Table data (simplified when using modal editing)
+  // Table data
   const tableData = useMemo(() => {
-    if (USE_MODAL_EDITING) {
-      return materials
-    } else {
-      // Original inline editing logic (for rollback)
-      if (editingRow?.id === 'new') {
-        const newRow: MaterialItem = {
-          id: -1, // Use -1 to distinguish new rows from existing ones
-          description: watch('description') || '',
-          unit: watch('unit') || 'each',
-          quantity: watch('quantity') || 1,
-          unit_cost: watch('unit_cost') || 0,
-          category: watch('category') || '',
-          created_at: new Date().toISOString(),
-          updated_at: null,
-          subproject_id: subproject.id
-        }
-        return [newRow, ...materials] // Add new row at the beginning
-      }
-      return materials
-    }
-  }, [materials, editingRow, watch, USE_MODAL_EDITING])
+    return materials
+  }, [materials])
 
   const table = useReactTable({
     data: tableData,
@@ -322,15 +183,13 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
               <span className="ml-2 text-xs text-blue-600 animate-pulse">Updating...</span>
             )}
           </span>
-          {!editingRow && (
-            <button
-              onClick={handleAddNew}
-              className="btn-primary text-sm inline-flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Material
-            </button>
-          )}
+          <button
+            onClick={handleAddNew}
+            className="btn-primary text-sm inline-flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Material
+          </button>
         </div>
       </div>
 
@@ -359,59 +218,24 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
             ))}
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {table.getRowModel().rows.map(row => {
-              if (USE_MODAL_EDITING) {
-                // Simplified rendering for modal editing
-                const isClickableRow = USE_SIMPLIFIED_COLUMNS
-                
-                return (
-                  <tr 
-                    key={row.id} 
-                    className={`transition-colors ${
-                      isClickableRow 
-                        ? 'hover:bg-blue-50 hover:shadow-sm cursor-pointer' 
-                        : 'hover:bg-gray-50'
-                    }`}
-                    onClick={isClickableRow ? () => handleEdit(row.original) : undefined}
-                  >
-                    {row.getVisibleCells().map(cell => (
-                      <td key={cell.id} className="px-4 py-3 text-sm">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                )
-              } else {
-                // Original complex rendering for inline editing (rollback)
-                const isEditingRow = (editingRow?.id === 'new' && row.original.id === -1) || 
-                                    (editingRow?.id === row.original.id)
-                return (
-                  <tr key={row.id} className={`${isEditingRow ? 'bg-blue-50' : ''} ${isEditingRow ? 'relative' : ''}`}>
-                    {row.getVisibleCells().map(cell => {
-                      const isDescriptionColumn = cell.column.id === 'description'
-                      const isEditingThisRow = (editingRow?.id === 'new' && row.original.id === -1) || 
-                                              (editingRow?.id === row.original.id)
-                      return (
-                        <td 
-                          key={cell.id} 
-                          className={`px-4 py-3 whitespace-nowrap text-sm ${
-                            isDescriptionColumn && isEditingThisRow ? 'relative overflow-visible' : ''
-                          }`}
-                          style={isDescriptionColumn && isEditingThisRow ? { zIndex: 10 } : undefined}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                )
-              }
-            })}
+            {table.getRowModel().rows.map(row => (
+              <tr 
+                key={row.id} 
+                className="transition-colors hover:bg-blue-50 hover:shadow-sm cursor-pointer"
+                onClick={() => handleEdit(row.original)}
+              >
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id} className="px-4 py-3 text-sm">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      {materials.length === 0 && !editingRow && (
+      {materials.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           <p>No materials added yet.</p>
           <button
@@ -428,7 +252,7 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onSave={handleModalSave}
-        onDelete={USE_SIMPLIFIED_COLUMNS ? handleModalDelete : undefined}
+        onDelete={handleModalDelete}
         subprojectId={subproject.id}
         editingMaterial={editingMaterialForModal}
       />

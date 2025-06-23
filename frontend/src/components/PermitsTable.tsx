@@ -5,38 +5,26 @@ import {
   flexRender,
   ColumnDef,
 } from '@tanstack/react-table'
-import { useForm } from 'react-hook-form'
 import { Plus } from 'lucide-react'
 import { subprojectsApi } from '../api/client'
 import {
-  PermitItem,
-  PermitItemCreate,
-  PermitItemUpdate,
-  ApiError
+  PermitItem
 } from '../types/api'
 import toast from 'react-hot-toast'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import { useCostCalculation } from '../context/CostCalculationContext'
 import PermitsModal from './PermitsModal'
-import { originalColumns, simplifiedColumns } from './permits-columns'
+import { simplifiedColumns } from './permits-columns'
 
-// Feature flags for easy rollback
-const USE_MODAL_EDITING = true
-const USE_SIMPLIFIED_COLUMNS = true
 
 interface PermitsTableProps {
   subprojectId: number
   onCostChange?: (totalCost: number) => void
 }
 
-interface EditingRow {
-  id: number | 'new'
-  data: Partial<PermitItem>
-}
 
 const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
   const [permitItems, setPermitItems] = useState<PermitItem[]>([])
-  const [editingRow, setEditingRow] = useState<EditingRow | null>(null)
   // Inline editing state (only used when not using modal - removed for cleanup)
   
   // Common state
@@ -49,8 +37,6 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
   const [editingPermitForModal, setEditingPermitForModal] = useState<PermitItem | null>(null)
 
   // Form handling (only used for inline editing when not using modal - removed for cleanup)  
-  // @ts-ignore - unused variables kept for rollback capability
-  const { watch, reset, setValue: _setValue } = useForm<PermitItemCreate>()
   const { updateCost, getCost, isPending } = useCostCalculation()
 
   const fetchPermitItems = async () => {
@@ -86,65 +72,15 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
   // Focus and search effects removed - only needed for inline editing
 
   const handleAddNew = () => {
-    if (USE_MODAL_EDITING) {
-      setEditingPermitForModal(null)
-      setIsModalOpen(true)
-    } else {
-      // Original inline editing logic (for rollback)
-      setEditingRow({
-        id: 'new',
-        data: {
-          description: '',
-          cost: 0,
-          issued_date: null,
-          expiration_date: null,
-          notes: ''
-        }
-      })
-      reset({
-        description: '',
-        cost: 0,
-        issued_date: '',
-        expiration_date: '',
-        notes: '',
-        subproject_id: subprojectId
-      })
-    }
+    setEditingPermitForModal(null)
+    setIsModalOpen(true)
   }
 
   const handleEdit = (permit: PermitItem) => {
-    if (USE_MODAL_EDITING) {
-      setEditingPermitForModal(permit)
-      setIsModalOpen(true)
-    } else {
-      // Original inline editing logic (for rollback)
-      setEditingRow({
-        id: permit.id,
-        data: permit
-      })
-      
-      // Format dates for form
-      const formatDate = (dateStr: string | null) => {
-        if (!dateStr) return ''
-        const date = new Date(dateStr)
-        return date.toISOString().split('T')[0]
-      }
-      
-      reset({
-        description: permit.description,
-        cost: permit.cost,
-        issued_date: formatDate(permit.issued_date),
-        expiration_date: formatDate(permit.expiration_date),
-        notes: permit.notes || '',
-        subproject_id: subprojectId
-      })
-    }
+    setEditingPermitForModal(permit)
+    setIsModalOpen(true)
   }
 
-  const handleCancel = () => {
-    setEditingRow(null)
-    reset()
-  }
 
   const handleModalSave = (permit: PermitItem) => {
     if (editingPermitForModal) {
@@ -189,50 +125,7 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
     }
   }
 
-  // @ts-ignore - unused function kept for rollback capability
-  const _handleSave = async (data: PermitItemCreate) => {
-    try {
-      // setLoading(true) - removed unused variable
-      
-      if (editingRow?.id === 'new') {
-        // Create new permit
-        const createData = {
-          ...data,
-          issued_date: data.issued_date || null,
-          expiration_date: data.expiration_date || null
-        }
-        const response = await subprojectsApi.createPermit(subprojectId, createData)
-        setPermitItems([response.data, ...permitItems]) // Add new permit to the top
-        toast.success('Permit added successfully')
-      } else if (editingRow?.id) {
-        // Update existing permit
-        const updateData: PermitItemUpdate = {
-          description: data.description,
-          cost: data.cost,
-          issued_date: data.issued_date || null,
-          expiration_date: data.expiration_date || null,
-          notes: data.notes
-        }
-        const response = await subprojectsApi.updatePermit(editingRow.id as number, updateData)
-        setPermitItems(permitItems.map(p => p.id === editingRow.id ? response.data : p))
-        toast.success('Permit updated successfully')
-      }
-      
-      handleCancel()
-      fetchPermitItems()
-    } catch (error: any) {
-      const apiError = error.response?.data as ApiError
-      const message = apiError?.detail || 'Failed to save permit'
-      toast.error(message)
-    } finally {
-      // setLoading(false) - removed unused variable
-    }
-  }
 
-  const handleDeleteClick = (permit: PermitItem) => {
-    setPermitToDelete(permit)
-    setIsDeleteModalOpen(true)
-  }
 
   const handleConfirmDelete = async () => {
     if (!permitToDelete) return
@@ -275,38 +168,15 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
     }).format(amount)
   }
 
-  // Column definitions with rollback capability
+  // Column definitions
   const columns = useMemo<ColumnDef<PermitItem, any>[]>(() => {
-    if (USE_SIMPLIFIED_COLUMNS) {
-      return simplifiedColumns()
-    } else {
-      return originalColumns(handleEdit, handleDeleteClick)
-    }
+    return simplifiedColumns()
   }, [])
 
-  // Table data (simplified when using modal editing)
+  // Table data
   const tableData = useMemo(() => {
-    if (USE_MODAL_EDITING) {
-      return permitItems
-    } else {
-      // Original inline editing logic (for rollback)
-      if (editingRow?.id === 'new') {
-        const newRow: PermitItem = {
-          id: -1, // Use -1 to distinguish new rows from existing ones
-          description: watch('description') || '',
-          cost: watch('cost') || 0,
-          issued_date: watch('issued_date') || null,
-          expiration_date: watch('expiration_date') || null,
-          notes: watch('notes') || '',
-          created_at: new Date().toISOString(),
-          updated_at: null,
-          subproject_id: subprojectId
-        }
-        return [newRow, ...permitItems] // Add new row at the beginning
-      }
-      return permitItems
-    }
-  }, [permitItems, editingRow, watch, USE_MODAL_EDITING])
+    return permitItems
+  }, [permitItems])
 
   const table = useReactTable({
     data: tableData,
@@ -328,15 +198,13 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
               <span className="ml-2 text-xs text-blue-600 animate-pulse">Updating...</span>
             )}
           </span>
-          {!editingRow && (
-            <button
-              onClick={handleAddNew}
-              className="btn-primary text-sm inline-flex items-center"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Add Permit
-            </button>
-          )}
+          <button
+            onClick={handleAddNew}
+            className="btn-primary text-sm inline-flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Permit
+          </button>
         </div>
       </div>
 
@@ -365,53 +233,24 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
             ))}
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {table.getRowModel().rows.map(row => {
-              if (USE_MODAL_EDITING) {
-                // Simplified rendering for modal editing
-                const isClickableRow = USE_SIMPLIFIED_COLUMNS
-                
-                return (
-                  <tr 
-                    key={row.id} 
-                    className={`transition-colors ${
-                      isClickableRow 
-                        ? 'hover:bg-blue-50 hover:shadow-sm cursor-pointer' 
-                        : 'hover:bg-gray-50'
-                    }`}
-                    onClick={isClickableRow ? () => handleEdit(row.original) : undefined}
-                  >
-                    {row.getVisibleCells().map(cell => (
-                      <td key={cell.id} className="px-4 py-3 text-sm">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                )
-              } else {
-                // Original complex rendering for inline editing (rollback)
-                const isEditingRow = (editingRow?.id === 'new' && row.original.id === -1) || 
-                                    (editingRow?.id === row.original.id)
-                return (
-                  <tr key={row.id} className={`${isEditingRow ? 'bg-blue-50' : ''} ${isEditingRow ? 'relative' : ''}`}>
-                    {row.getVisibleCells().map(cell => {
-                      return (
-                        <td 
-                          key={cell.id} 
-                          className={`px-4 py-3 whitespace-nowrap text-sm`}
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
-                      )
-                    })}
-                  </tr>
-                )
-              }
-            })}
+            {table.getRowModel().rows.map(row => (
+              <tr 
+                key={row.id} 
+                className="transition-colors hover:bg-blue-50 hover:shadow-sm cursor-pointer"
+                onClick={() => handleEdit(row.original)}
+              >
+                {row.getVisibleCells().map(cell => (
+                  <td key={cell.id} className="px-4 py-3 text-sm">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
-      {permitItems.length === 0 && !editingRow && (
+      {permitItems.length === 0 && (
         <div className="text-center py-8 text-gray-500">
           <p>No permits added yet.</p>
           <button
@@ -428,7 +267,7 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         onSave={handleModalSave}
-        onDelete={USE_SIMPLIFIED_COLUMNS ? handleModalDelete : undefined}
+        onDelete={handleModalDelete}
         subprojectId={subprojectId}
         editingPermit={editingPermitForModal}
       />

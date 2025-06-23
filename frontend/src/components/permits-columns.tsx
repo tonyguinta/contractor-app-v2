@@ -1,5 +1,4 @@
 import { createColumnHelper, ColumnDef } from '@tanstack/react-table'
-import { Edit, Trash2 } from 'lucide-react'
 import { PermitItem } from '../types/api'
 
 const columnHelper = createColumnHelper<PermitItem>()
@@ -16,64 +15,6 @@ const formatDate = (dateStr: string | null) => {
   const date = new Date(dateStr)
   return date.toLocaleDateString()
 }
-
-// Original columns (for rollback)
-export const originalColumns = (
-  onEdit: (permit: PermitItem) => void,
-  onDelete: (permit: PermitItem) => void
-): ColumnDef<PermitItem, any>[] => [
-  columnHelper.accessor('description', {
-    header: 'Description',
-    cell: ({ getValue }) => <span className="font-medium">{getValue()}</span>,
-  }),
-  columnHelper.accessor('cost', {
-    header: 'Cost',
-    cell: ({ getValue }) => <span className="text-right block">{formatCurrency(getValue())}</span>,
-  }),
-  columnHelper.accessor('issued_date', {
-    header: 'Issued Date',
-    cell: ({ getValue }) => <span>{formatDate(getValue())}</span>,
-  }),
-  columnHelper.accessor('expiration_date', {
-    header: 'Expiration Date',
-    cell: ({ getValue }) => <span>{formatDate(getValue())}</span>,
-  }),
-  columnHelper.accessor('notes', {
-    header: 'Notes',
-    cell: ({ getValue }) => {
-      const notes = getValue()
-      return notes ? (
-        <span className="text-gray-600 truncate block max-w-xs" title={notes}>
-          {notes}
-        </span>
-      ) : (
-        <span className="text-gray-400">No notes</span>
-      )
-    },
-  }),
-  columnHelper.display({
-    id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) => (
-      <div className="flex space-x-2">
-        <button
-          onClick={() => onEdit(row.original)}
-          className="text-gray-600 hover:text-gray-800 p-1"
-          title="Edit permit"
-        >
-          <Edit className="h-4 w-4" />
-        </button>
-        <button
-          onClick={() => onDelete(row.original)}
-          className="text-red-600 hover:text-red-800 p-1"
-          title="Delete permit"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      </div>
-    ),
-  }),
-]
 
 // Simplified columns (mobile-friendly, click-to-edit)
 export const simplifiedColumns = (): ColumnDef<PermitItem, any>[] => [
