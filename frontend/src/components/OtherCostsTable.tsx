@@ -1,51 +1,65 @@
-import { useState, useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useState, useEffect, useMemo } from 'react'
 import {
   useReactTable,
   getCoreRowModel,
-  createColumnHelper,
   flexRender,
+  ColumnDef,
 } from '@tanstack/react-table'
-import { OtherCostItem, OtherCostItemCreate, OtherCostItemUpdate } from '../types/api'
-import { api } from '../api/client'
-import { Plus, Trash2, Check, X, Edit } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { Plus } from 'lucide-react'
+import { subprojectsApi } from '../api/client'
+import {
+  OtherCostItem,
+  OtherCostItemCreate,
+  OtherCostItemUpdate,
+  ApiError
+} from '../types/api'
+import toast from 'react-hot-toast'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
+import { useCostCalculation } from '../context/CostCalculationContext'
+import OtherCostsModal from './OtherCostsModal'
+import { originalColumns, simplifiedColumns } from './other-costs-columns'
+
+// Feature flags for easy rollback
+const USE_MODAL_EDITING = true
+const USE_SIMPLIFIED_COLUMNS = true
 
 interface OtherCostsTableProps {
   subprojectId: number
   onCostChange?: (totalCost: number) => void
 }
 
-interface OtherCostFormData {
-  description: string
-  cost: number
-  notes: string
+interface EditingRow {
+  id: number | 'new'
+  data: Partial<OtherCostItem>
 }
 
-const columnHelper = createColumnHelper<OtherCostItem>()
-
-export default function OtherCostsTable({ subprojectId, onCostChange }: OtherCostsTableProps) {
+const OtherCostsTable = ({ subprojectId, onCostChange }: OtherCostsTableProps) => {
   const [otherCostItems, setOtherCostItems] = useState<OtherCostItem[]>([])
-  const [editingId, setEditingId] = useState<number | null>(null)
-  const [isAdding, setIsAdding] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [editingRow, setEditingRow] = useState<EditingRow | null>(null)
+  // Inline editing state (only used when not using modal - removed for cleanup)
+  
+  // Common state
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [otherCostToDelete, setOtherCostToDelete] = useState<OtherCostItem | undefined>()
+  const [deleteLoading, setDeleteLoading] = useState(false)
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingOtherCostForModal, setEditingOtherCostForModal] = useState<OtherCostItem | null>(null)
 
-  const { control, handleSubmit, reset, setValue } = useForm<OtherCostFormData>({
-    defaultValues: {
-      description: '',
-      cost: 0,
-      notes: '',
-    }
-  })
+  // Form handling (only used for inline editing when not using modal - removed for cleanup)  
+  // @ts-ignore - unused variables kept for rollback capability
+  const { watch, reset, setValue: _setValue } = useForm<OtherCostItemCreate>()
+  const { updateCost, getCost, isPending } = useCostCalculation()
 
   const fetchOtherCostItems = async () => {
     try {
-      const response = await api.get(`/subprojects/${subprojectId}/other-costs`)
-      setOtherCostItems(response.data)
-      
-      // Calculate total cost for parent component
-      const totalCost = response.data.reduce((sum: number, item: OtherCostItem) => sum + item.cost, 0)
-      onCostChange?.(totalCost)
-    } catch (error) {
+      const response = await subprojectsApi.getById(subprojectId)
+      if (response.data.other_cost_items) {
+        setOtherCostItems(response.data.other_cost_items)
+      }
+    } catch (error: any) {
       console.error('Failed to fetch other cost items:', error)
     }
   }
@@ -54,310 +68,360 @@ export default function OtherCostsTable({ subprojectId, onCostChange }: OtherCos
     fetchOtherCostItems()
   }, [subprojectId])
 
-  const handleCreate = async (data: OtherCostFormData) => {
-    setLoading(true)
-    try {
-      const createData: OtherCostItemCreate = {
-        ...data,
-        subproject_id: subprojectId,
-        notes: data.notes || null,
+  // Update cost calculation whenever other cost items change
+  useEffect(() => {
+    const totalCost = otherCostItems.reduce((sum, item) => sum + item.cost, 0)
+    // For now, just update local cost without server sync since bulk endpoints don't exist yet
+    // Individual other cost operations already handle server updates
+    updateCost(subprojectId.toString(), 'other', totalCost, []).catch(error => {
+      if (error.message !== 'SUPERSEDED' && error.message !== 'REQUEST_CANCELLED') {
+        console.error('Failed to update other costs:', error)
       }
-      await api.post(`/subprojects/${subprojectId}/other-costs`, createData)
-      await fetchOtherCostItems()
-      reset()
-      setIsAdding(false)
-    } catch (error) {
-      console.error('Failed to create other cost item:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleUpdate = async (id: number, data: OtherCostFormData) => {
-    setLoading(true)
-    try {
-      const updateData: OtherCostItemUpdate = {
-        ...data,
-        notes: data.notes || null,
-      }
-      await api.put(`/other-costs/${id}`, updateData)
-      await fetchOtherCostItems()
-      setEditingId(null)
-      reset()
-    } catch (error) {
-      console.error('Failed to update other cost item:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this cost item?')) return
+    })
     
-    setLoading(true)
-    try {
-      await api.delete(`/other-costs/${id}`)
-      await fetchOtherCostItems()
-    } catch (error) {
-      console.error('Failed to delete other cost item:', error)
-    } finally {
-      setLoading(false)
+    // Also call the legacy onCostChange prop if provided
+    onCostChange?.(totalCost)
+  }, [otherCostItems, subprojectId, updateCost, onCostChange])
+
+  // Focus and search effects removed - only needed for inline editing
+
+  const handleAddNew = () => {
+    if (USE_MODAL_EDITING) {
+      setEditingOtherCostForModal(null)
+      setIsModalOpen(true)
+    } else {
+      // Original inline editing logic (for rollback)
+      setEditingRow({
+        id: 'new',
+        data: {
+          description: '',
+          cost: 0,
+          notes: ''
+        }
+      })
+      reset({
+        description: '',
+        cost: 0,
+        notes: '',
+        subproject_id: subprojectId
+      })
     }
   }
 
-  const startEdit = (item: OtherCostItem) => {
-    setEditingId(item.id)
-    setValue('description', item.description)
-    setValue('cost', item.cost)
-    setValue('notes', item.notes || '')
+  const handleEdit = (otherCost: OtherCostItem) => {
+    if (USE_MODAL_EDITING) {
+      setEditingOtherCostForModal(otherCost)
+      setIsModalOpen(true)
+    } else {
+      // Original inline editing logic (for rollback)
+      setEditingRow({
+        id: otherCost.id,
+        data: otherCost
+      })
+      reset({
+        description: otherCost.description,
+        cost: otherCost.cost,
+        notes: otherCost.notes || '',
+        subproject_id: subprojectId
+      })
+    }
   }
 
-  const cancelEdit = () => {
-    setEditingId(null)
-    setIsAdding(false)
+  const handleCancel = () => {
+    setEditingRow(null)
     reset()
   }
 
-  const columns = [
-    columnHelper.accessor('description', {
-      header: 'Description',
-      cell: ({ row, getValue }) => {
-        const isEditing = editingId === row.original.id
-        if (isEditing) {
-          return (
-            <Controller
-              name="description"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  type="text"
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                  placeholder="e.g., Equipment Rental, Delivery Fee"
-                />
-              )}
-            />
-          )
+  const handleModalSave = (otherCost: OtherCostItem) => {
+    if (editingOtherCostForModal) {
+      // Update existing other cost in the list
+      setOtherCostItems(otherCostItems.map(oc => oc.id === otherCost.id ? otherCost : oc))
+    } else {
+      // Add new other cost to the top of the list
+      setOtherCostItems([otherCost, ...otherCostItems])
+    }
+    setIsModalOpen(false)
+    setEditingOtherCostForModal(null)
+    fetchOtherCostItems() // Refresh to get updated data
+  }
+
+  const handleModalClose = () => {
+    setIsModalOpen(false)
+    setEditingOtherCostForModal(null)
+  }
+
+  const handleModalDelete = async (otherCost: OtherCostItem) => {
+    try {
+      setDeleteLoading(true)
+      await subprojectsApi.deleteOtherCost(otherCost.id)
+      setOtherCostItems(otherCostItems.filter(oc => oc.id !== otherCost.id))
+      toast.success('Other cost deleted successfully')
+      fetchOtherCostItems() // Refresh to get updated data
+    } catch (error: any) {
+      console.error('Delete other cost error:', error)
+      
+      let message = 'Failed to delete other cost'
+      if (error.response?.data) {
+        const errorData = error.response.data
+        if (typeof errorData.detail === 'string') {
+          message = errorData.detail
+        } else if (errorData.message) {
+          message = errorData.message
         }
-        return <span>{getValue()}</span>
-      },
-    }),
-    columnHelper.accessor('cost', {
-      header: () => <div className="text-right">Cost</div>,
-      cell: ({ row, getValue }) => {
-        const isEditing = editingId === row.original.id
-        if (isEditing) {
-          return (
-            <Controller
-              name="cost"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right"
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                />
-              )}
-            />
-          )
+      }
+      toast.error(message)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  // @ts-ignore - unused function kept for rollback capability
+  const _handleSave = async (data: OtherCostItemCreate) => {
+    try {
+      // setLoading(true) - removed unused variable
+      
+      if (editingRow?.id === 'new') {
+        // Create new other cost
+        const response = await subprojectsApi.createOtherCost(subprojectId, data)
+        setOtherCostItems([response.data, ...otherCostItems]) // Add new other cost to the top
+        toast.success('Other cost added successfully')
+      } else if (editingRow?.id) {
+        // Update existing other cost
+        const updateData: OtherCostItemUpdate = {
+          description: data.description,
+          cost: data.cost,
+          notes: data.notes
         }
-        return <div className="text-right">${getValue().toFixed(2)}</div>
-      },
-    }),
-    columnHelper.accessor('notes', {
-      header: 'Notes',
-      cell: ({ row, getValue }) => {
-        const isEditing = editingId === row.original.id
-        if (isEditing) {
-          return (
-            <Controller
-              name="notes"
-              control={control}
-              render={({ field }) => (
-                <input
-                  {...field}
-                  type="text"
-                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                  placeholder="Optional notes"
-                />
-              )}
-            />
-          )
+        const response = await subprojectsApi.updateOtherCost(editingRow.id as number, updateData)
+        setOtherCostItems(otherCostItems.map(oc => oc.id === editingRow.id ? response.data : oc))
+        toast.success('Other cost updated successfully')
+      }
+      
+      handleCancel()
+      fetchOtherCostItems()
+    } catch (error: any) {
+      const apiError = error.response?.data as ApiError
+      const message = apiError?.detail || 'Failed to save other cost'
+      toast.error(message)
+    } finally {
+      // setLoading(false) - removed unused variable
+    }
+  }
+
+  const handleDeleteClick = (otherCost: OtherCostItem) => {
+    setOtherCostToDelete(otherCost)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!otherCostToDelete) return
+
+    try {
+      setDeleteLoading(true)
+      await subprojectsApi.deleteOtherCost(otherCostToDelete.id)
+      setOtherCostItems(otherCostItems.filter(oc => oc.id !== otherCostToDelete.id))
+      toast.success('Other cost deleted successfully')
+      fetchOtherCostItems()
+      setIsDeleteModalOpen(false)
+      setOtherCostToDelete(undefined)
+    } catch (error: any) {
+      console.error('Delete other cost error:', error)
+      
+      let message = 'Failed to delete other cost'
+      if (error.response?.data) {
+        const errorData = error.response.data
+        if (typeof errorData.detail === 'string') {
+          message = errorData.detail
+        } else if (errorData.message) {
+          message = errorData.message
         }
-        return <span>{getValue() || ''}</span>
-      },
-    }),
-    columnHelper.display({
-      id: 'actions',
-      header: '',
-      cell: ({ row }) => {
-        const isEditing = editingId === row.original.id
-        if (isEditing) {
-          return (
-            <div className="flex gap-1">
-              <button
-                onClick={handleSubmit((data) => handleUpdate(row.original.id, data))}
-                disabled={loading}
-                className="p-1 text-green-600 hover:text-green-800 disabled:opacity-50"
-              >
-                <Check className="h-4 w-4" />
-              </button>
-              <button
-                onClick={cancelEdit}
-                disabled={loading}
-                className="p-1 text-gray-600 hover:text-gray-800 disabled:opacity-50"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          )
+      }
+      toast.error(message)
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false)
+    setOtherCostToDelete(undefined)
+  }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(amount)
+  }
+
+  // Column definitions with rollback capability
+  const columns = useMemo<ColumnDef<OtherCostItem, any>[]>(() => {
+    if (USE_SIMPLIFIED_COLUMNS) {
+      return simplifiedColumns()
+    } else {
+      return originalColumns(handleEdit, handleDeleteClick)
+    }
+  }, [])
+
+  // Table data (simplified when using modal editing)
+  const tableData = useMemo(() => {
+    if (USE_MODAL_EDITING) {
+      return otherCostItems
+    } else {
+      // Original inline editing logic (for rollback)
+      if (editingRow?.id === 'new') {
+        const newRow: OtherCostItem = {
+          id: -1, // Use -1 to distinguish new rows from existing ones
+          description: watch('description') || '',
+          cost: watch('cost') || 0,
+          notes: watch('notes') || '',
+          created_at: new Date().toISOString(),
+          updated_at: null,
+          subproject_id: subprojectId
         }
-        return (
-          <div className="flex gap-1">
-            <button
-              onClick={() => startEdit(row.original)}
-              className="p-1 text-blue-600 hover:text-blue-800"
-            >
-              <Edit className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => handleDelete(row.original.id)}
-              className="p-1 text-red-600 hover:text-red-800"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        )
-      },
-    }),
-  ]
+        return [newRow, ...otherCostItems] // Add new row at the beginning
+      }
+      return otherCostItems
+    }
+  }, [otherCostItems, editingRow, watch, USE_MODAL_EDITING])
 
   const table = useReactTable({
-    data: otherCostItems,
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
 
+  const totalCost = getCost(subprojectId.toString(), 'other')
+  const isUpdatingCost = isPending(subprojectId.toString(), 'other')
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">Other Costs</h3>
-        <button
-          onClick={() => setIsAdding(true)}
-          disabled={isAdding || editingId !== null}
-          className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add Cost
-        </button>
+        <h4 className="text-md font-medium text-gray-900">Other Costs</h4>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-600">
+            Total: <span className="font-medium">{formatCurrency(totalCost)}</span>
+            {isUpdatingCost && (
+              <span className="ml-2 text-xs text-blue-600 animate-pulse">Updating...</span>
+            )}
+          </span>
+          {!editingRow && (
+            <button
+              onClick={handleAddNew}
+              className="btn-primary text-sm inline-flex items-center"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add Other Cost
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
+                {headerGroup.headers.map(header => {
+                  const isNumericColumn = ['cost'].includes(header.id)
+                  return (
+                    <th
+                      key={header.id}
+                      className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                        isNumericColumn ? 'text-right' : 'text-left'
+                      }`}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())
+                      }
+                    </th>
+                  )
+                })}
               </tr>
             ))}
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {isAdding && (
-              <tr className="bg-blue-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <Controller
-                    name="description"
-                    control={control}
-                    render={({ field }) => (
-                      <input
-                        {...field}
-                        type="text"
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        placeholder="e.g., Equipment Rental, Delivery Fee"
-                      />
-                    )}
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <Controller
-                    name="cost"
-                    control={control}
-                    render={({ field }) => (
-                      <input
-                        {...field}
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm text-right"
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                      />
-                    )}
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <Controller
-                    name="notes"
-                    control={control}
-                    render={({ field }) => (
-                      <input
-                        {...field}
-                        type="text"
-                        className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                        placeholder="Optional notes"
-                      />
-                    )}
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                  <div className="flex gap-1">
-                    <button
-                      onClick={handleSubmit(handleCreate)}
-                      disabled={loading}
-                      className="p-1 text-green-600 hover:text-green-800 disabled:opacity-50"
-                    >
-                      <Check className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={cancelEdit}
-                      disabled={loading}
-                      className="p-1 text-gray-600 hover:text-gray-800 disabled:opacity-50"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            )}
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className={editingId === row.original.id ? 'bg-blue-50' : ''}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            {table.getRowModel().rows.map(row => {
+              if (USE_MODAL_EDITING) {
+                // Simplified rendering for modal editing
+                const isClickableRow = USE_SIMPLIFIED_COLUMNS
+                
+                return (
+                  <tr 
+                    key={row.id} 
+                    className={`transition-colors ${
+                      isClickableRow 
+                        ? 'hover:bg-blue-50 hover:shadow-sm cursor-pointer' 
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={isClickableRow ? () => handleEdit(row.original) : undefined}
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <td key={cell.id} className="px-4 py-3 text-sm">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                )
+              } else {
+                // Original complex rendering for inline editing (rollback)
+                const isEditingRow = (editingRow?.id === 'new' && row.original.id === -1) || 
+                                    (editingRow?.id === row.original.id)
+                return (
+                  <tr key={row.id} className={`${isEditingRow ? 'bg-blue-50' : ''} ${isEditingRow ? 'relative' : ''}`}>
+                    {row.getVisibleCells().map(cell => {
+                      return (
+                        <td 
+                          key={cell.id} 
+                          className={`px-4 py-3 whitespace-nowrap text-sm`}
+                        >
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      )
+                    })}
+                  </tr>
+                )
+              }
+            })}
           </tbody>
         </table>
       </div>
 
-      {otherCostItems.length === 0 && !isAdding && (
+      {otherCostItems.length === 0 && !editingRow && (
         <div className="text-center py-8 text-gray-500">
-          No other costs yet. Click "Add Cost" to get started.
+          <p>No other costs added yet.</p>
+          <button
+            onClick={handleAddNew}
+            className="mt-2 btn-primary text-sm"
+          >
+            Add Your First Other Cost
+          </button>
         </div>
       )}
+
+      {/* Other Costs Modal */}
+      <OtherCostsModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSave={handleModalSave}
+        onDelete={USE_SIMPLIFIED_COLUMNS ? handleModalDelete : undefined}
+        subprojectId={subprojectId}
+        editingOtherCost={editingOtherCostForModal}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        onConfirm={handleConfirmDelete}
+        title="Delete Other Cost"
+        message={`Are you sure you want to delete "${otherCostToDelete?.description}"? This action cannot be undone.`}
+        confirmText="Delete Other Cost"
+        loading={deleteLoading}
+      />
     </div>
   )
-} 
+}
+
+export default OtherCostsTable
