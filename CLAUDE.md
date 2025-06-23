@@ -151,6 +151,8 @@ For development database issues, see `DATABASE_RESET_GUIDE.md` for step-by-step 
 - **Right-align all numeric columns** in tables (currency, quantities)
 
 ### Cost Tracking System
+- **Mobile-first click-to-edit interface** with simplified table layouts
+- **Optimistic UI updates** with server sync and conflict resolution
 - Real-time frontend calculations with periodic backend persistence
 - Material autocomplete using global MaterialEntry table for reusability
 - Debounced API calls (300ms) to prevent excessive server requests
@@ -237,14 +239,55 @@ npm run lint:strict   # ESLint with zero warnings
 5. Create React components and pages using design system
 6. Update navigation if needed
 
-### Editable Tables Pattern
-Use TanStack Table + React Hook Form for complex data entry:
-- Register form fields with table cell renderers
-- Implement debounced calculations for real-time updates
-- Right-align numeric columns (currency, quantities, calculations)
-- Handle validation errors inline
+### Mobile-First Editable Tables Pattern
+**Standard Implementation for Cost Tracking Tables (Materials, Labor, Permits, Other Costs):**
 
-The codebase follows mature patterns established in the existing cost tracking system for Materials, Labor, Permits, and Other Costs tables.
+#### Architecture Components
+- **Modal Component**: `{Type}Modal.tsx` - Full-featured editing with autocomplete
+- **Table Component**: `{Type}Table.tsx` - Click-to-edit interface with simplified columns  
+- **Column Definitions**: `{type}-columns.tsx` - Separate original/simplified column definitions
+- **Context Integration**: Use `CostCalculationContext` for optimistic UI updates
+
+#### Feature Flags for Rollback Safety
+```typescript
+const USE_MODAL_EDITING = true      // Enable modal-based editing
+const USE_SIMPLIFIED_COLUMNS = true // Enable 3-column mobile layout
+```
+
+#### Mobile-First Table Design
+- **3-column layout**: Description (with details), Quantity (with unit), Total (with unit cost)
+- **Click-to-edit rows**: Full row clickable with hover effects (`hover:bg-blue-50 cursor-pointer`)
+- **No action buttons**: Delete moved to modal for cleaner mobile interface
+- **Consolidated info**: Show quantity, unit, category in description column subtitle
+
+#### Modal Editing Standards
+- **Autocomplete prevention**: Set `lastSelectedValue` when editing existing items
+- **Form validation**: React Hook Form with inline error display
+- **Button text**: Keep simple - "Delete", "Update", "Cancel" (no "Material", "Labor", etc.)
+- **Browser autocomplete**: Disable with `autoComplete="off"` on all business forms
+- **Delete confirmation**: Inline confirmation within modal (no separate modal)
+
+#### Optimistic UI Integration
+```typescript
+// Standard pattern for cost updates
+const { updateCost, getCost, isPending } = useCostCalculation()
+
+// Update immediately on item changes
+useEffect(() => {
+  const totalCost = items.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0)
+  updateCost(subproject.id.toString(), costType, totalCost, [])
+}, [items, subproject.id, updateCost])
+```
+
+#### Implementation Checklist
+- [ ] Create modal component with autocomplete (copy MaterialModal pattern)
+- [ ] Create simplified column definitions (copy materials-columns.tsx pattern)  
+- [ ] Update table component with feature flags and click-to-edit
+- [ ] Integrate with CostCalculationContext for optimistic updates
+- [ ] Test autocomplete, editing, deletion, and cost calculations
+- [ ] Verify mobile responsiveness and accessibility
+
+The MaterialsTable implementation serves as the reference for all other cost tracking tables.
 
 ## Technical Debt & Issues Tracking
 
