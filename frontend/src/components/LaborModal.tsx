@@ -127,7 +127,7 @@ const LaborModal: React.FC<LaborModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(handleSave)} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(handleSave)} className="p-6 space-y-4" autoComplete="off">
           {/* Role */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

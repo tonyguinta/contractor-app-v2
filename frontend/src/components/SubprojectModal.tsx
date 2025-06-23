@@ -154,7 +154,7 @@ const SubprojectModal = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4" autoComplete="off">
           {/* Title */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
@@ -163,6 +163,11 @@ const SubprojectModal = ({
             <input
               {...register('title', { required: 'Title is required' })}
               type="text"
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="e.g., Kitchen Remodel, Deck Construction"
             />
@@ -179,6 +184,11 @@ const SubprojectModal = ({
             <textarea
               {...register('description')}
               rows={3}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               placeholder="Optional description of the subproject scope and details"
             />
@@ -191,6 +201,8 @@ const SubprojectModal = ({
             </label>
             <select
               {...register('status', { required: 'Status is required' })}
+              autoComplete="off"
+              data-form-type="other"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="planning">Planning</option>
@@ -211,6 +223,8 @@ const SubprojectModal = ({
               <input
                 {...register('start_date')}
                 type="date"
+                autoComplete="off"
+                data-form-type="other"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>
@@ -221,6 +235,8 @@ const SubprojectModal = ({
               <input
                 {...register('end_date')}
                 type="date"
+                autoComplete="off"
+                data-form-type="other"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
               />
             </div>

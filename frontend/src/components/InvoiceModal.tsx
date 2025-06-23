@@ -168,7 +168,7 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6" autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -178,6 +178,11 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
                 {...register('title', { required: 'Invoice title is required' })}
                 className="input-field"
                 placeholder="Enter invoice title"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
               />
               {errors.title && (
                 <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
@@ -192,6 +197,8 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
                 {...register('client_id', { required: 'Client is required' })}
                 className="input-field"
                 defaultValue={invoice?.client_id || ''}
+                autoComplete="off"
+                data-form-type="other"
               >
                 <option value="">Select a client</option>
                 {clients.map((client) => (
@@ -214,6 +221,8 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
                 className="input-field"
                 disabled={!selectedClientId}
                 defaultValue={invoice?.project_id?.toString() || ''}
+                autoComplete="off"
+                data-form-type="other"
               >
                 <option value="">Select a project</option>
                 {getFilteredProjects().map((project) => (
@@ -235,6 +244,8 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
                 min="0"
                 className="input-field"
                 placeholder="0.00"
+                autoComplete="off"
+                data-form-type="other"
               />
               {errors.amount && (
                 <p className="mt-1 text-sm text-red-600">{errors.amount.message}</p>
@@ -253,6 +264,8 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
                 max="100"
                 className="input-field"
                 placeholder="0.00"
+                autoComplete="off"
+                data-form-type="other"
               />
             </div>
 
@@ -264,6 +277,8 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
                 {...register('issue_date', { required: 'Issue date is required' })}
                 type="date"
                 className="input-field"
+                autoComplete="off"
+                data-form-type="other"
               />
               {errors.issue_date && (
                 <p className="mt-1 text-sm text-red-600">{errors.issue_date.message}</p>
@@ -278,6 +293,8 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
                 {...register('due_date', { required: 'Due date is required' })}
                 type="date"
                 className="input-field"
+                autoComplete="off"
+                data-form-type="other"
               />
               {errors.due_date && (
                 <p className="mt-1 text-sm text-red-600">{errors.due_date.message}</p>
@@ -294,6 +311,11 @@ const InvoiceModal = ({ isOpen, onClose, onSuccess, invoice }: InvoiceModalProps
               rows={4}
               className="input-field"
               placeholder="Invoice description or notes..."
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
             />
           </div>
 

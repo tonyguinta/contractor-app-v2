@@ -20,9 +20,58 @@ const Login = () => {
       await login(data.email, data.password)
       toast.success('Welcome back!')
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Login failed')
+      handleLoginError(error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleLoginError = (error: any) => {
+    const status = error.response?.status
+    const detail = error.response?.data?.detail
+
+    if (status === 401 && detail === 'Incorrect email or password') {
+      // Enhanced error message with registration suggestion
+      toast.error(
+        (t) => (
+          <div className="space-y-2">
+            <div className="font-medium">Unable to sign in</div>
+            <div className="text-sm text-gray-600">
+              The email or password you entered is incorrect.
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <Link 
+                to="/register" 
+                className="text-sm text-accent-600 hover:text-accent-700 font-medium"
+                onClick={() => toast.dismiss(t.id)}
+              >
+                Create account instead?
+              </Link>
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        ),
+        {
+          duration: 8000,
+          style: {
+            minWidth: '320px',
+          },
+        }
+      )
+    } else if (status === 422) {
+      // Validation errors
+      toast.error('Please check your email and password format')
+    } else if (status >= 500) {
+      // Server errors
+      toast.error('Server temporarily unavailable. Please try again in a moment.')
+    } else {
+      // Fallback for other errors
+      toast.error(detail || 'Unable to sign in. Please try again.')
     }
   }
 
@@ -43,7 +92,7 @@ const Login = () => {
             </Link>
           </p>
         </div>
-        <form className="mt-6 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="mt-6 space-y-6" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -53,11 +102,16 @@ const Login = () => {
                 {...register('email', { 
                   required: 'Email is required',
                   pattern: {
-                    value: /^\S+@\S+$/i,
-                    message: 'Invalid email address'
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Please enter a valid email address'
                   }
                 })}
-                type="email"
+                type="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
                 className="input-field"
                 placeholder="Enter your email"
               />
@@ -70,8 +124,19 @@ const Login = () => {
                 Password
               </label>
               <input
-                {...register('password', { required: 'Password is required' })}
+                {...register('password', { 
+                  required: 'Password is required',
+                  minLength: {
+                    value: 1,
+                    message: 'Password cannot be empty'
+                  }
+                })}
                 type="password"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
                 className="input-field"
                 placeholder="Enter your password"
               />

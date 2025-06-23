@@ -134,7 +134,7 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId }: TaskModalPro
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6" autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -144,6 +144,11 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId }: TaskModalPro
                 {...register('title', { required: 'Task title is required' })}
                 className="input-field"
                 placeholder="Enter task title"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
               />
               {errors.title && (
                 <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
@@ -158,6 +163,8 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId }: TaskModalPro
                 <select
                   {...register('project_id', { required: 'Project is required' })}
                   className="input-field"
+                  autoComplete="off"
+                  data-form-type="other"
                 >
                   <option value="">Select a project</option>
                   {projects.map((project) => (
@@ -176,7 +183,7 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId }: TaskModalPro
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Status
               </label>
-              <select {...register('status')} className="input-field">
+              <select {...register('status')} className="input-field" autoComplete="off" data-form-type="other">
                 <option value="pending">Pending</option>
                 <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
@@ -187,7 +194,7 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId }: TaskModalPro
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Priority
               </label>
-              <select {...register('priority')} className="input-field">
+              <select {...register('priority')} className="input-field" autoComplete="off" data-form-type="other">
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
@@ -208,6 +215,8 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId }: TaskModalPro
                 min="0"
                 className="input-field"
                 placeholder="0.0"
+                autoComplete="off"
+                data-form-type="other"
               />
               {errors.estimated_hours && (
                 <p className="mt-1 text-sm text-red-600">{errors.estimated_hours.message}</p>
@@ -222,6 +231,8 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId }: TaskModalPro
                 {...register('due_date')}
                 type="date"
                 className="input-field"
+                autoComplete="off"
+                data-form-type="other"
               />
             </div>
 
@@ -234,6 +245,11 @@ const TaskModal = ({ isOpen, onClose, onSuccess, task, projectId }: TaskModalPro
                 rows={3}
                 className="input-field"
                 placeholder="Enter task description (optional)"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
               />
             </div>
           </div>

@@ -122,7 +122,7 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6" autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -132,6 +132,11 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                 {...register('title', { required: 'Project title is required' })}
                 className="input-field"
                 placeholder="Enter project title"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
               />
               {errors.title && (
                 <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
@@ -147,6 +152,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                 name="client_id"
                 className="input-field"
                 defaultValue={project?.client_id || ''}
+                autoComplete="off"
+                data-form-type="other"
               >
                 <option value="">Select a client</option>
                 {clients.map((client) => (
@@ -164,7 +171,7 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Status
               </label>
-              <select {...register('status')} className="input-field">
+              <select {...register('status')} className="input-field" autoComplete="off" data-form-type="other">
                 <option value="planning">Planning</option>
                 <option value="in_progress">In Progress</option>
                 <option value="on_hold">On Hold</option>
@@ -180,6 +187,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                 {...register('start_date')}
                 type="date"
                 className="input-field"
+                autoComplete="off"
+                data-form-type="other"
               />
             </div>
 
@@ -191,6 +200,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                 {...register('end_date')}
                 type="date"
                 className="input-field"
+                autoComplete="off"
+                data-form-type="other"
               />
             </div>
           </div>
@@ -204,6 +215,11 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
               rows={3}
               className="input-field"
               placeholder="Project description..."
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
             />
           </div>
 
@@ -221,6 +237,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                   min="0"
                   className="input-field"
                   placeholder="0.00"
+                  autoComplete="off"
+                  data-form-type="other"
                 />
               </div>
 
@@ -235,6 +253,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                   min="0"
                   className="input-field"
                   placeholder="0.00"
+                  autoComplete="off"
+                  data-form-type="other"
                 />
               </div>
 
@@ -249,6 +269,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                   min="0"
                   className="input-field"
                   placeholder="0.00"
+                  autoComplete="off"
+                  data-form-type="other"
                 />
               </div>
 
@@ -263,6 +285,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                   min="0"
                   className="input-field"
                   placeholder="0.00"
+                  autoComplete="off"
+                  data-form-type="other"
                 />
               </div>
 
@@ -277,6 +301,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                   min="0"
                   className="input-field"
                   placeholder="0.00"
+                  autoComplete="off"
+                  data-form-type="other"
                 />
               </div>
             </div>

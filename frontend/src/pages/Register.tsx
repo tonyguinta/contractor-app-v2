@@ -20,6 +20,55 @@ const Register = () => {
   
   const password = watch('password')
 
+  const handleRegistrationError = (error: any) => {
+    const status = error.response?.status
+    const detail = error.response?.data?.detail
+
+    if (status === 400 && detail === 'Email already registered') {
+      // Email already exists - suggest login
+      toast.error(
+        (t) => (
+          <div className="space-y-2">
+            <div className="font-medium">Email already registered</div>
+            <div className="text-sm text-gray-600">
+              An account with this email already exists.
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <Link 
+                to="/login" 
+                className="text-sm text-accent-600 hover:text-accent-700 font-medium"
+                onClick={() => toast.dismiss(t.id)}
+              >
+                Sign in instead?
+              </Link>
+              <button
+                onClick={() => toast.dismiss(t.id)}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        ),
+        {
+          duration: 8000,
+          style: {
+            minWidth: '320px',
+          },
+        }
+      )
+    } else if (status === 422) {
+      // Validation errors
+      toast.error('Please check all required fields and try again')
+    } else if (status >= 500) {
+      // Server errors
+      toast.error('Server temporarily unavailable. Please try again in a moment.')
+    } else {
+      // Fallback for other errors
+      toast.error(detail || 'Unable to create account. Please try again.')
+    }
+  }
+
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true)
     try {
@@ -32,7 +81,7 @@ const Register = () => {
       })
       toast.success('Account created successfully!')
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'Registration failed')
+      handleRegistrationError(error)
     } finally {
       setLoading(false)
     }
@@ -55,7 +104,7 @@ const Register = () => {
             </Link>
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
           <div className="space-y-4">
             <div>
               <label htmlFor="full_name" className="block text-sm font-medium text-gray-700">
@@ -64,6 +113,11 @@ const Register = () => {
               <input
                 {...register('full_name', { required: 'Full name is required' })}
                 type="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
                 className="input-field"
                 placeholder="Enter your full name"
               />
@@ -80,11 +134,16 @@ const Register = () => {
                 {...register('email', { 
                   required: 'Email is required',
                   pattern: {
-                    value: /^\S+@\S+$/i,
-                    message: 'Invalid email address'
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: 'Please enter a valid email address'
                   }
                 })}
-                type="email"
+                type="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
                 className="input-field"
                 placeholder="Enter your email"
               />
@@ -100,6 +159,11 @@ const Register = () => {
               <input
                 {...register('company_name')}
                 type="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
                 className="input-field"
                 placeholder="Enter your company name"
               />
@@ -111,7 +175,12 @@ const Register = () => {
               </label>
               <input
                 {...register('phone')}
-                type="tel"
+                type="text"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
                 className="input-field"
                 placeholder="Enter your phone number"
               />
@@ -130,6 +199,11 @@ const Register = () => {
                   }
                 })}
                 type="password"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
                 className="input-field"
                 placeholder="Enter your password"
               />
@@ -148,6 +222,11 @@ const Register = () => {
                   validate: value => value === password || 'Passwords do not match'
                 })}
                 type="password"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-form-type="other"
                 className="input-field"
                 placeholder="Confirm your password"
               />

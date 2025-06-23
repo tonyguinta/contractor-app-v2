@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { clientsApi } from '../api/client'
@@ -14,7 +14,26 @@ interface ClientModalProps {
 
 const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) => {
   const [loading, setLoading] = useState(false)
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<ClientCreate>()
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<ClientCreate>()
+  
+  const formatPhoneNumber = (value: string) => {
+    if (!value) return value
+    
+    // Remove all non-digit characters
+    const phoneNumber = value.replace(/[^\d]/g, '')
+    
+    // Apply formatting based on length
+    if (phoneNumber.length < 4) return phoneNumber
+    if (phoneNumber.length < 7) {
+      return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3)}`
+    }
+    return `(${phoneNumber.slice(0, 3)}) ${phoneNumber.slice(3, 6)}-${phoneNumber.slice(6, 10)}`
+  }
+  
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value)
+    setValue('phone', formatted)
+  }
 
   useEffect(() => {
     if (client) {
@@ -74,16 +93,17 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
           </button>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4" autoComplete="off">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-              Name *
+              Client Name *
             </label>
             <input
-              {...register('name', { required: 'Name is required' })}
+              {...register('name', { required: 'Client name is required' })}
               type="text"
               className="input-field"
               placeholder="Enter client name"
+              autoComplete="off"
             />
             {errors.name && (
               <p className="mt-1 text-sm text-error">{errors.name.message}</p>
@@ -92,18 +112,19 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              Client Email
             </label>
             <input
               {...register('email', {
-                pattern: {
-                  value: /^\S+@\S+$/i,
-                  message: 'Invalid email address'
+                validate: (value) => {
+                  if (!value || value.trim() === '') return true // Allow blank
+                  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) || 'Please enter a valid email address'
                 }
               })}
-              type="email"
+              type="text"
               className="input-field"
               placeholder="Enter email address"
+              autoComplete="off"
             />
             {errors.email && (
               <p className="mt-1 text-sm text-error">{errors.email.message}</p>
@@ -112,37 +133,52 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
 
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-              Phone
+              Client Phone
             </label>
             <input
-              {...register('phone')}
-              type="tel"
+              {...register('phone', {
+                validate: (value) => {
+                  if (!value || value.trim() === '') return true // Allow blank
+                  const phoneNumber = value.replace(/[^\d]/g, '')
+                  return phoneNumber.length === 10 || 'Phone number must be 10 digits'
+                }
+              })}
+              type="text"
               className="input-field"
-              placeholder="Enter phone number"
+              placeholder="(555) 123-4567"
+              autoComplete="off"
+              onChange={handlePhoneChange}
             />
+            {errors.phone && (
+              <p className="mt-1 text-sm text-error">{errors.phone.message}</p>
+            )}
           </div>
 
           <div>
             <label htmlFor="company" className="block text-sm font-medium text-gray-700">
-              Company
+              Client Company
             </label>
             <input
               {...register('company')}
               type="text"
+              name="client_company"
               className="input-field"
               placeholder="Enter company name"
+              autoComplete="off"
             />
           </div>
 
           <div>
             <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-              Address
+              Client Address
             </label>
             <textarea
               {...register('address')}
+              name="client_address"
               className="input-field"
               rows={3}
               placeholder="Enter address"
+              autoComplete="off"
             />
           </div>
 
@@ -155,6 +191,7 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
               className="input-field"
               rows={3}
               placeholder="Enter any additional notes"
+              autoComplete="off"
             />
           </div>
 
@@ -180,4 +217,4 @@ const ClientModal = ({ isOpen, onClose, onSuccess, client }: ClientModalProps) =
   )
 }
 
-export default ClientModal 
+export default ClientModal
