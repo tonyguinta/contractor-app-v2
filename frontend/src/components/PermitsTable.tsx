@@ -201,9 +201,10 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
           <button
             onClick={handleAddNew}
             className="btn-primary text-sm inline-flex items-center"
+            title="Add Permit"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Permit
+            Add
           </button>
         </div>
       </div>
@@ -257,7 +258,7 @@ const PermitsTable = ({ subprojectId, onCostChange }: PermitsTableProps) => {
             onClick={handleAddNew}
             className="mt-2 btn-primary text-sm"
           >
-            Add Your First Permit
+            Add Permit
           </button>
         </div>
       )}

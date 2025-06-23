@@ -201,9 +201,10 @@ const OtherCostsTable = ({ subprojectId, onCostChange }: OtherCostsTableProps) =
           <button
             onClick={handleAddNew}
             className="btn-primary text-sm inline-flex items-center"
+            title="Add Other Cost"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Other Cost
+            Add
           </button>
         </div>
       </div>
@@ -257,7 +258,7 @@ const OtherCostsTable = ({ subprojectId, onCostChange }: OtherCostsTableProps) =
             onClick={handleAddNew}
             className="mt-2 btn-primary text-sm"
           >
-            Add Your First Other Cost
+            Add Other Cost
           </button>
         </div>
       )}

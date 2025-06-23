@@ -186,9 +186,10 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
           <button
             onClick={handleAddNew}
             className="btn-primary text-sm inline-flex items-center"
+            title="Add Material"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Material
+            Add
           </button>
         </div>
       </div>
@@ -242,7 +243,7 @@ const MaterialsTable = ({ subproject, onUpdate }: MaterialsTableProps) => {
             onClick={handleAddNew}
             className="mt-2 btn-primary text-sm"
           >
-            Add Your First Material
+            Add Material
           </button>
         </div>
       )}

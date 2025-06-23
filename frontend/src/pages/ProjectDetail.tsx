@@ -302,9 +302,10 @@ const ProjectDetail = () => {
             <button 
               onClick={handleAddSubproject}
               className="btn-primary inline-flex items-center"
+              title="Add Subproject"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Subproject
+              Add
             </button>
           </div>
 
@@ -312,16 +313,7 @@ const ProjectDetail = () => {
           {subprojects.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg shadow">
               <h3 className="text-sm font-medium text-gray-900">No subprojects</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first subproject.</p>
-              <div className="mt-6">
-                <button 
-                  onClick={handleAddSubproject}
-                  className="btn-primary"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Subproject
-                </button>
-              </div>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating your first subproject using the button above.</p>
             </div>
           ) : (
             <div className="space-y-4">

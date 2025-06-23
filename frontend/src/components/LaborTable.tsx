@@ -202,9 +202,10 @@ const LaborTable = ({ subprojectId, onCostChange }: LaborTableProps) => {
           <button
             onClick={handleAddNew}
             className="btn-primary text-sm inline-flex items-center"
+            title="Add Labor"
           >
             <Plus className="h-4 w-4 mr-1" />
-            Add Labor
+            Add
           </button>
         </div>
       </div>
@@ -258,7 +259,7 @@ const LaborTable = ({ subprojectId, onCostChange }: LaborTableProps) => {
             onClick={handleAddNew}
             className="mt-2 btn-primary text-sm"
           >
-            Add Your First Labor Item
+            Add Labor
           </button>
         </div>
       )}
