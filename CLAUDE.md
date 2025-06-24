@@ -298,3 +298,21 @@ Refer to `TECHNICAL_DEBT.md` for:
 - Migration planning and refactoring triggers
 
 Review this file monthly and surface high-priority items proactively during development.
+
+## Known Issues & Solutions
+
+### Trailing Slash API Issue (HTTPS/HTTP Mixed Content)
+
+**Problem**: Adding trailing slashes to certain API endpoints causes server redirects from HTTPS to HTTP in production, resulting in mixed content errors.
+
+**Root Cause**: Server configuration redirects `/projects/{id}/` to `/projects/{id}` using HTTP instead of HTTPS.
+
+**Solution**: Remove trailing slashes from these specific endpoints:
+- `projectsApi.getById`: Use `/projects/${id}` not `/projects/${id}/`
+- `subprojectsApi.getById`: Use `/subprojects/${id}` not `/subprojects/${id}/`
+
+**Fix Applied**: 
+- Commit 01e03ea (original fix)
+- Commit e9e83f2 (reapplied after reintroduction)
+
+**Prevention**: When adding new API endpoints, avoid trailing slashes on resource-specific GET requests. Use trailing slashes only for collection endpoints (e.g., `/projects/`, `/clients/`).
