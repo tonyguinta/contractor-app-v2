@@ -316,3 +316,44 @@ Review this file monthly and surface high-priority items proactively during deve
 - Commit e9e83f2 (reapplied after reintroduction)
 
 **Prevention**: When adding new API endpoints, avoid trailing slashes on resource-specific GET requests. Use trailing slashes only for collection endpoints (e.g., `/projects/`, `/clients/`).
+
+### Vercel Secret Reference Error
+
+**Problem**: Vercel deployment fails with error: `Environment Variable "VITE_API_URL" references Secret "vite_api_url", which does not exist.`
+
+**Root Cause**: Invalid `vercel.json` configuration contains `build.env` section referencing non-existent secrets using `@secret_name` syntax.
+
+**Example of problematic `vercel.json`:**
+```json
+{
+  "build": {
+    "env": {
+      "VITE_API_URL": "@vite_api_url"
+    }
+  }
+}
+```
+
+**Solution**: Remove the `build.env` section from `vercel.json` and rely on environment variables set through Vercel dashboard instead.
+
+**Correct `vercel.json`:**
+```json
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+**Environment variables should be set via:**
+- Vercel Dashboard → Settings → Environment Variables
+- Not hardcoded in `vercel.json` with secret references
+
+**Fix Applied**: 
+- Commit 2950034 (removed invalid secret reference from vercel.json)
+- This issue occurred in both production and staging setups
+
+**Prevention**: Don't use `@secret_name` syntax in `vercel.json` unless the secret actually exists. Use Vercel dashboard for environment variable management instead.
