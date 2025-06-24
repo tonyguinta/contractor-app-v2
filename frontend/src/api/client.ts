@@ -122,7 +122,7 @@ export const projectsApi = {
   getAll: (): Promise<AxiosResponse<ProjectWithClient[]>> => 
     api.get('/projects/'),
   getById: (id: number): Promise<AxiosResponse<ProjectWithClient>> => 
-    api.get(`/projects/${id}/`),
+    api.get(`/projects/${id}`),
   create: (data: ProjectCreate): Promise<AxiosResponse<Project>> => 
     api.post('/projects/', data),
   update: (id: number, data: ProjectUpdate): Promise<AxiosResponse<Project>> => 
