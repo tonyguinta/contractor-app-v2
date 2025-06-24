@@ -20,7 +20,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ||
   (import.meta.env.MODE === 'production' 
     ? 'https://api.buildcraftpro.com/api'
     : import.meta.env.MODE === 'preview'
-      ? 'https://staging-api.buildcraftpro.com/api'
+      ? 'https://api-staging.buildcraftpro.com/api'
       : 'http://localhost:8000/api')
 
 export const api = axios.create({
