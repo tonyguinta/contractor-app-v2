@@ -67,6 +67,7 @@ class ProjectBase(BaseModel):
     material_cost: Optional[float] = 0.0
     permit_cost: Optional[float] = 0.0
     other_cost: Optional[float] = 0.0
+    sales_tax_rate: Optional[float] = 0.0
 
 class ProjectCreate(ProjectBase):
     client_id: int
@@ -75,10 +76,13 @@ class ProjectUpdate(ProjectBase):
     title: Optional[str] = None
     client_id: Optional[int] = None
     actual_cost: Optional[float] = None
+    sales_tax_rate: Optional[float] = None
 
 class Project(ProjectBase):
     id: int
     actual_cost: float
+    sales_tax_amount: float
+    total_with_tax: float
     created_at: datetime
     updated_at: Optional[datetime]
     owner_id: int
