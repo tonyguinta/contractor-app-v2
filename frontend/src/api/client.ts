@@ -15,11 +15,13 @@ import {
   CostSummary
 } from '../types/api'
 
-// Use environment variable for API URL, with smart defaults for production
+// Use environment variable for API URL, with smart defaults based on environment
 const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (import.meta.env.MODE === 'production' 
-    ? 'https://api.buildcraftpro.com/api' 
-    : 'http://localhost:8000/api')
+    ? 'https://api.buildcraftpro.com/api'
+    : import.meta.env.MODE === 'preview'
+      ? 'https://staging-api.buildcraftpro.com/api'
+      : 'http://localhost:8000/api')
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
