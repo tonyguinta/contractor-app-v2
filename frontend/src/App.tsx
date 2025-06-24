@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 import Clients from './pages/Clients'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
+import SubprojectDetail from './pages/SubprojectDetail'
 import Tasks from './pages/Tasks'
 import Invoices from './pages/Invoices'
 import LoadingSpinner from './components/LoadingSpinner'
@@ -36,6 +37,7 @@ function App() {
             <Route path="clients" element={<Clients />} />
             <Route path="projects" element={<Projects />} />
             <Route path="projects/:projectId" element={<ProjectDetail />} />
+            <Route path="projects/:projectId/subprojects/:subprojectId" element={<SubprojectDetail />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="*" element={<Navigate to="/" />} />

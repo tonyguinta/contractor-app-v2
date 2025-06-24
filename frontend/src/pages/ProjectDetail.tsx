@@ -9,14 +9,11 @@ import {
 } from '../types/api'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
-import MaterialsTable from '../components/MaterialsTable'
-import LaborTable from '../components/LaborTable'
-import PermitsTable from '../components/PermitsTable'
-import OtherCostsTable from '../components/OtherCostsTable'
 import CostSummary from '../components/CostSummary'
 import SubprojectModal from '../components/SubprojectModal'
+import ProjectModal from '../components/ProjectModal'
+import TasksTable from '../components/TasksTable'
 import ConfirmDeleteModal from '../components/ConfirmDeleteModal'
-import { useCostCalculation } from '../context/CostCalculationContext'
 
 const ProjectDetail = () => {
   const { projectId } = useParams<{ projectId: string }>()
@@ -24,13 +21,12 @@ const ProjectDetail = () => {
   const [project, setProject] = useState<ProjectWithClient | null>(null)
   const [subprojects, setSubprojects] = useState<SubprojectWithItems[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'overview' | 'subprojects'>('overview')
   const [isSubprojectModalOpen, setIsSubprojectModalOpen] = useState(false)
   const [editingSubproject, setEditingSubproject] = useState<SubprojectWithItems | undefined>()
-  const [expandedSubprojects, setExpandedSubprojects] = useState<Set<number>>(new Set())
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [subprojectToDelete, setSubprojectToDelete] = useState<SubprojectWithItems | undefined>()
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   useEffect(() => {
     if (projectId) {
@@ -111,16 +107,21 @@ const ProjectDetail = () => {
     fetchProjectData()
   }
 
-  const handleToggleSubprojectExpand = (subprojectId: number) => {
-    setExpandedSubprojects(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(subprojectId)) {
-        newSet.delete(subprojectId)
-      } else {
-        newSet.add(subprojectId)
-      }
-      return newSet
-    })
+  const handleEditProject = () => {
+    setIsEditModalOpen(true)
+  }
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false)
+  }
+
+  const handleProjectUpdateSuccess = () => {
+    fetchProjectData()
+    setIsEditModalOpen(false)
+  }
+
+  const handleSubprojectClick = (subprojectId: number) => {
+    navigate(`/projects/${projectId}/subprojects/${subprojectId}`)
   }
 
   const handleDeleteSubproject = (subproject: SubprojectWithItems) => {
@@ -199,57 +200,36 @@ const ProjectDetail = () => {
   const projectTotals = calculateProjectTotals()
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate('/projects')}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{project.title}</h1>
-            <p className="text-gray-600">Client: {project.client.name}</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Minimal Sticky Header */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => navigate('/projects')}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900 truncate">{project.title}</h1>
+              <p className="text-sm text-gray-500">{project.client.name}</p>
+            </div>
           </div>
-        </div>
-        <div className="flex space-x-3">
-          <button className="btn-secondary inline-flex items-center">
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Project
+          <button 
+            onClick={handleEditProject}
+            className="btn-secondary inline-flex items-center text-sm"
+          >
+            <Edit className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Edit</span>
           </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'overview'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('subprojects')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'subprojects'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Subprojects ({subprojects.length})
-          </button>
-        </nav>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
 
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
+
+        {/* Project Overview Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Project Details */}
           <div className="bg-white rounded-lg shadow p-6">
@@ -292,46 +272,62 @@ const ProjectDetail = () => {
             />
           </div>
         </div>
-      )}
 
-      {activeTab === 'subprojects' && (
-        <div className="space-y-6">
-          {/* Subprojects Header */}
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium text-gray-900">Subprojects</h3>
-            <button 
-              onClick={handleAddSubproject}
-              className="btn-primary inline-flex items-center"
-              title="Add Subproject"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add
-            </button>
+        {/* Subprojects Section */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">
+                Subprojects ({subprojects.length})
+              </h3>
+              <button 
+                onClick={handleAddSubproject}
+                className="btn-accent inline-flex items-center text-sm"
+                title="Add Subproject"
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </button>
+            </div>
           </div>
 
-          {/* Subprojects List */}
-          {subprojects.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow">
-              <h3 className="text-sm font-medium text-gray-900">No subprojects</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first subproject using the button above.</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {subprojects.map((subproject) => (
-                <SubprojectCard
-                  key={subproject.id}
-                  subproject={subproject}
-                  onUpdate={fetchProjectData}
-                  onEdit={handleEditSubproject}
-                  onDelete={handleDeleteSubproject}
-                  isExpanded={expandedSubprojects.has(subproject.id)}
-                  onToggleExpand={handleToggleSubprojectExpand}
-                />
-              ))}
-            </div>
-          )}
+          <div className="p-6">
+
+            {subprojects.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p className="mb-3">No subprojects yet</p>
+                <button
+                  onClick={handleAddSubproject}
+                  className="btn-accent inline-flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Subproject
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {subprojects.map((subproject) => (
+                  <SubprojectCard
+                    key={subproject.id}
+                    subproject={subproject}
+                    onEdit={handleEditSubproject}
+                    onDelete={handleDeleteSubproject}
+                    onClick={() => handleSubprojectClick(subproject.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      )}
+
+        {/* Tasks Section */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <TasksTable 
+            projectId={parseInt(projectId!)}
+            onTaskChange={fetchProjectData}
+          />
+        </div>
+      </div>
 
       {/* Subproject Modal */}
       {projectId && (
@@ -341,6 +337,16 @@ const ProjectDetail = () => {
           onSuccess={handleSubprojectSuccess}
           projectId={parseInt(projectId)}
           subproject={editingSubproject}
+        />
+      )}
+
+      {/* Edit Project Modal */}
+      {project && (
+        <ProjectModal
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
+          onSuccess={handleProjectUpdateSuccess}
+          project={project}
         />
       )}
 
@@ -361,28 +367,18 @@ const ProjectDetail = () => {
 // Subproject Card Component
 interface SubprojectCardProps {
   subproject: SubprojectWithItems
-  onUpdate: () => void
   onEdit: (subproject: SubprojectWithItems) => void
   onDelete: (subproject: SubprojectWithItems) => void
-  isExpanded: boolean
-  onToggleExpand: (subprojectId: number) => void
+  onClick: () => void
 }
 
-const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, onToggleExpand }: SubprojectCardProps) => {
-  const { getCost, setConfirmedCost } = useCostCalculation()
-  const [laborCost, setLaborCost] = useState(0)
-  const [permitsCost, setPermitsCost] = useState(0)
-  const [otherCost, setOtherCost] = useState(0)
-
-  // Initialize confirmed costs from subproject data
-  useEffect(() => {
-    const materialTotal = subproject.material_items.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0)
-    setConfirmedCost(subproject.id.toString(), 'materials', materialTotal)
-  }, [subproject.material_items, subproject.id, setConfirmedCost])
-
+const SubprojectCard = ({ subproject, onEdit, onDelete, onClick }: SubprojectCardProps) => {
   const calculateSubprojectTotal = () => {
-    const materialsCost = getCost(subproject.id.toString(), 'materials')
-    return materialsCost + laborCost + permitsCost + otherCost
+    const materialsTotal = subproject.material_items.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0)
+    const laborTotal = subproject.labor_items.reduce((sum, item) => sum + (item.number_of_workers * item.hourly_rate * item.hours), 0)
+    const permitsTotal = subproject.permit_items.reduce((sum, item) => sum + item.cost, 0)
+    const otherTotal = subproject.other_cost_items.reduce((sum, item) => sum + item.cost, 0)
+    return materialsTotal + laborTotal + permitsTotal + otherTotal
   }
 
   const formatCurrency = (amount: number) => {
@@ -410,20 +406,17 @@ const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, on
   }
 
   return (
-    <div className="bg-white rounded-lg shadow">
+    <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
       <div className="p-6">
         <div className="flex justify-between items-start">
-          <div 
-            className="flex-1 cursor-pointer"
-            onClick={() => onToggleExpand(subproject.id)}
-          >
+          <div className="flex-1">
             <div className="flex items-center space-x-3">
               <h4 className="text-lg font-medium text-gray-900">{subproject.title}</h4>
               <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(subproject.status)}`}>
                 {formatStatus(subproject.status)}
               </span>
               <div className="text-gray-400">
-                {isExpanded ? '▼' : '▶'}
+                →
               </div>
             </div>
             {subproject.description && (
@@ -454,42 +447,6 @@ const SubprojectCard = ({ subproject, onUpdate, onEdit, onDelete, isExpanded, on
             </button>
           </div>
         </div>
-
-        {isExpanded && (
-          <div className="mt-6 space-y-6">
-            {/* Cost Summary */}
-            <CostSummary
-              materialsCost={getCost(subproject.id.toString(), 'materials')}
-              laborCost={laborCost}
-              permitsCost={permitsCost}
-              otherCost={otherCost}
-            />
-            
-            {/* Materials Table */}
-            <MaterialsTable 
-              subproject={subproject} 
-              onUpdate={onUpdate}
-            />
-            
-            {/* Labor Table */}
-            <LaborTable
-              subprojectId={subproject.id}
-              onCostChange={setLaborCost}
-            />
-            
-            {/* Permits Table */}
-            <PermitsTable
-              subprojectId={subproject.id}
-              onCostChange={setPermitsCost}
-            />
-            
-            {/* Other Costs Table */}
-            <OtherCostsTable
-              subprojectId={subproject.id}
-              onCostChange={setOtherCost}
-            />
-          </div>
-        )}
       </div>
     </div>
   )
