@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean, Numeric
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -55,15 +55,12 @@ class Project(Base):
     status = Column(String, default=PROJECT_STATUS_PLANNING)  # planning, in_progress, completed, on_hold
     start_date = Column(DateTime)
     end_date = Column(DateTime)
-    estimated_cost = Column(Numeric(10, 2), default=0.0)
-    actual_cost = Column(Numeric(10, 2), default=0.0)
-    labor_cost = Column(Numeric(10, 2), default=0.0)
-    material_cost = Column(Numeric(10, 2), default=0.0)
-    permit_cost = Column(Numeric(10, 2), default=0.0)
-    other_cost = Column(Numeric(10, 2), default=0.0)
-    sales_tax_rate = Column(Numeric(8, 6), default=0.0)  # Tax rate as decimal (e.g., 0.087500 for 8.75%)
-    sales_tax_amount = Column(Numeric(10, 2), default=0.0)  # Calculated tax amount
-    total_with_tax = Column(Numeric(10, 2), default=0.0)  # Total project cost including tax
+    estimated_cost = Column(Float, default=0.0)
+    actual_cost = Column(Float, default=0.0)
+    labor_cost = Column(Float, default=0.0)
+    material_cost = Column(Float, default=0.0)
+    permit_cost = Column(Float, default=0.0)
+    other_cost = Column(Float, default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
@@ -86,8 +83,8 @@ class Task(Base):
     description = Column(Text)
     status = Column(String, default=TASK_STATUS_PENDING)  # pending, in_progress, completed
     priority = Column(String, default=TASK_PRIORITY_MEDIUM)  # low, medium, high
-    estimated_hours = Column(Numeric(8, 2), default=0.0)
-    actual_hours = Column(Numeric(8, 2), default=0.0)
+    estimated_hours = Column(Float, default=0.0)
+    actual_hours = Column(Float, default=0.0)
     due_date = Column(DateTime)
     completed_at = Column(DateTime)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -106,10 +103,10 @@ class Invoice(Base):
     invoice_number = Column(String, unique=True, index=True)
     title = Column(String)
     description = Column(Text)
-    amount = Column(Numeric(10, 2))
-    tax_rate = Column(Numeric(8, 6), default=0.0)
-    tax_amount = Column(Numeric(10, 2), default=0.0)
-    total_amount = Column(Numeric(10, 2))
+    amount = Column(Float)
+    tax_rate = Column(Float, default=0.0)
+    tax_amount = Column(Float, default=0.0)
+    total_amount = Column(Float)
     status = Column(String, default=INVOICE_STATUS_DRAFT)  # draft, sent, paid, overdue
     issue_date = Column(DateTime)
     due_date = Column(DateTime)
@@ -161,7 +158,7 @@ class MaterialEntry(Base):
     description = Column(String, index=True)
     unit = Column(String)
     category = Column(String)
-    unit_price = Column(Numeric(10, 2))
+    unit_price = Column(Float)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Foreign key
@@ -177,8 +174,8 @@ class MaterialItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String)
     unit = Column(String)
-    quantity = Column(Numeric(10, 3))  # Allow for precise quantities like 1.375
-    unit_cost = Column(Numeric(10, 2))
+    quantity = Column(Float)
+    unit_cost = Column(Float)
     category = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -196,8 +193,8 @@ class LaborItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     role = Column(String)
     number_of_workers = Column(Integer)
-    hourly_rate = Column(Numeric(8, 2))
-    hours = Column(Numeric(8, 2))
+    hourly_rate = Column(Float)
+    hours = Column(Float)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
@@ -213,7 +210,7 @@ class PermitItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String)
-    cost = Column(Numeric(10, 2))
+    cost = Column(Float)
     issued_date = Column(DateTime)
     expiration_date = Column(DateTime)
     notes = Column(Text)
@@ -232,7 +229,7 @@ class OtherCostItem(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     description = Column(String)
-    cost = Column(Numeric(10, 2))
+    cost = Column(Float)
     notes = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

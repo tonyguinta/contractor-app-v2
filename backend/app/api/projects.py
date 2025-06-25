@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from decimal import Decimal
 from app.db.database import get_db
 from app.models.models import Project, User, Client
 from app.schemas.schemas import Project as ProjectSchema, ProjectCreate, ProjectUpdate, ProjectWithClient
@@ -48,27 +47,6 @@ def read_project(
         raise HTTPException(status_code=404, detail="Project not found")
     return project
 
-def calculate_project_totals(project: Project):
-    """Calculate sales tax and total project cost"""
-    # Ensure all values are Decimal for precise calculations
-    labor_cost = Decimal(str(project.labor_cost or 0))
-    material_cost = Decimal(str(project.material_cost or 0))
-    permit_cost = Decimal(str(project.permit_cost or 0))
-    other_cost = Decimal(str(project.other_cost or 0))
-    tax_rate = Decimal(str(project.sales_tax_rate or 0))
-    
-    # Calculate subtotal (sum of all cost categories)
-    subtotal = labor_cost + material_cost + permit_cost + other_cost
-    
-    # Calculate sales tax amount
-    project.sales_tax_amount = subtotal * tax_rate
-    
-    # Calculate total with tax
-    project.total_with_tax = subtotal + project.sales_tax_amount
-    
-    # Update actual_cost to reflect subtotal
-    project.actual_cost = subtotal
-
 @router.put("/{project_id}", response_model=ProjectSchema)
 def update_project(
     project_id: int,
@@ -89,28 +67,6 @@ def update_project(
     update_data = project_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(project, field, value)
-    
-    # Recalculate totals if cost fields or tax rate changed
-    cost_fields = ['labor_cost', 'material_cost', 'permit_cost', 'other_cost', 'sales_tax_rate']
-    if any(field in update_data for field in cost_fields):
-        calculate_project_totals(project)
-    
-    db.commit()
-    db.refresh(project)
-    return project
-
-@router.post("/{project_id}/calculate-tax", response_model=ProjectSchema)
-def calculate_tax(
-    project_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
-):
-    """Recalculate sales tax and totals for a project"""
-    project = db.query(Project).filter(Project.id == project_id, Project.owner_id == current_user.id).first()
-    if project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-    
-    calculate_project_totals(project)
     
     db.commit()
     db.refresh(project)
