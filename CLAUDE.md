@@ -289,6 +289,75 @@ useEffect(() => {
 
 The MaterialsTable implementation serves as the reference for all other cost tracking tables.
 
+## Critical Development Guidelines
+
+### Database Schema Management
+**CRITICAL: Always maintain database-model consistency**
+- When adding database columns via SQLAlchemy models, plan rollback strategy first
+- If reverting model changes, ALWAYS revert database schema simultaneously
+- Test database changes in isolation before deploying
+- Document any manual schema changes needed for deployment
+
+**Schema Change Process:**
+1. Add/modify SQLAlchemy models
+2. Test locally with fresh database
+3. Deploy to staging and verify schema consistency
+4. Test staging thoroughly before production
+5. If reverting: remove columns from database AND models together
+
+### Deployment Pipeline Discipline
+**NEVER skip the staging test step**
+1. **Local** → Test all changes locally first
+2. **Staging** → Deploy and test thoroughly in staging environment
+3. **Production** → Only deploy after staging verification
+
+**When user says "pause" or "test first" - ACTUALLY PAUSE**
+- Don't implement new features without explicit approval
+- Don't merge to production without staging verification
+- Don't deploy to both environments simultaneously
+
+### Todo Task Completion Discipline
+**NEVER mark tasks as completed until ALL criteria are met:**
+1. Feature is fully implemented
+2. Tested thoroughly in staging environment
+3. Deployed successfully to production
+4. User confirms it's working as expected
+5. No additional changes or fixes needed
+
+**Task Status Guidelines:**
+- `pending` - Not yet started
+- `in_progress` - Currently working on (only ONE task at a time)
+- `completed` - ONLY after user confirmation and production verification
+
+**Premature completion marking leads to:**
+- False sense of progress
+- Missed testing requirements
+- Broken deployments
+- Lost track of actual work status
+
+### Error Diagnosis Best Practices
+- **Backend 500 errors can appear as CORS issues in frontend**
+- Always check backend logs first when frontend shows CORS errors
+- Database connection errors often manifest as CORS-like symptoms
+- Verify backend health endpoints before investigating frontend networking
+
+### Database Recovery Procedures
+If database schema becomes inconsistent with models:
+1. Identify orphaned columns in database logs
+2. Create one-time cleanup script to remove orphaned columns
+3. Integrate cleanup into deployment startup (run once)
+4. Verify environment health after cleanup
+5. Remove cleanup scripts from startup commands
+
+**Example cleanup pattern:**
+```python
+# One-time database cleanup script
+def cleanup_database():
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE projects DROP COLUMN IF EXISTS orphaned_column;"))
+        conn.commit()
+```
+
 ## Technical Debt & Issues Tracking
 
 Refer to `TECHNICAL_DEBT.md` for:
