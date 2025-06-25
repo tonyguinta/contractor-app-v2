@@ -20,13 +20,19 @@ allowed_origins = [
     "http://localhost:3001", 
     "http://localhost:3002",
     "http://localhost:5173",
-    "https://app.buildcraftpro.com"  # App subdomain
+    "https://app.buildcraftpro.com",  # Production frontend
+    "https://app-staging.buildcraftpro.com"  # Staging frontend
 ]
 
-# Add production frontend URL from environment
+# Add additional frontend URL from environment (for flexibility)
 frontend_url = os.getenv("FRONTEND_URL")
-if frontend_url:
+if frontend_url and frontend_url not in allowed_origins:
     allowed_origins.append(frontend_url)
+
+# Legacy support for CORS_ORIGINS (but FRONTEND_URL is preferred)
+cors_origins = os.getenv("CORS_ORIGINS")
+if cors_origins and cors_origins not in allowed_origins:
+    allowed_origins.append(cors_origins)
 
 app.add_middleware(
     CORSMiddleware,
