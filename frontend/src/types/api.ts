@@ -79,6 +79,9 @@ export interface Project {
   material_cost: number
   permit_cost: number
   other_cost: number
+  sales_tax_rate: number
+  sales_tax_amount: number
+  total_with_tax: number
   created_at: string
   updated_at: string | null
   owner_id: number
@@ -97,6 +100,7 @@ export interface ProjectCreate {
   material_cost?: number
   permit_cost?: number
   other_cost?: number
+  sales_tax_rate?: number
 }
 
 export interface ProjectUpdate {
@@ -112,6 +116,7 @@ export interface ProjectUpdate {
   material_cost?: number | null
   permit_cost?: number | null
   other_cost?: number | null
+  sales_tax_rate?: number | null
 }
 
 export interface ProjectWithClient extends Project {
