@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List, Literal
 from datetime import datetime
+from decimal import Decimal
 from app.core.constants import (
     PROJECT_STATUSES, PROJECT_STATUS_PLANNING,
     TASK_STATUSES, TASK_STATUS_PENDING,
@@ -25,6 +26,25 @@ class UserLogin(BaseModel):
 class User(UserBase):
     id: int
     is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+# Company Settings schemas
+class CompanySettingsBase(BaseModel):
+    default_sales_tax_rate: Decimal = Field(default=0.0, ge=0, le=0.5, description="Default sales tax rate as decimal (0.0875 for 8.75%)")
+
+class CompanySettingsCreate(CompanySettingsBase):
+    pass
+
+class CompanySettingsUpdate(CompanySettingsBase):
+    default_sales_tax_rate: Optional[Decimal] = Field(default=None, ge=0, le=0.5)
+
+class CompanySettings(CompanySettingsBase):
+    id: int
+    user_id: int
     created_at: datetime
     updated_at: datetime
 
@@ -67,6 +87,8 @@ class ProjectBase(BaseModel):
     material_cost: Optional[float] = 0.0
     permit_cost: Optional[float] = 0.0
     other_cost: Optional[float] = 0.0
+    sales_tax_rate: Optional[Decimal] = Field(default=0.0, ge=0, le=0.5, description="Sales tax rate as decimal (0.0875 for 8.75%)")
+    is_tax_exempt: Optional[bool] = False
 
 class ProjectCreate(ProjectBase):
     client_id: int
@@ -79,6 +101,8 @@ class ProjectUpdate(ProjectBase):
 class Project(ProjectBase):
     id: int
     actual_cost: float
+    sales_tax_amount: Decimal
+    total_with_tax: Decimal
     created_at: datetime
     updated_at: Optional[datetime]
     owner_id: int

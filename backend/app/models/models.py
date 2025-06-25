@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, Text, ForeignKey, Boolean, Numeric
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.database import Base
@@ -26,6 +26,21 @@ class User(Base):
     clients = relationship("Client", back_populates="owner")
     projects = relationship("Project", back_populates="owner")
     invoices = relationship("Invoice", back_populates="owner")
+    company_settings = relationship("CompanySettings", back_populates="user")
+
+class CompanySettings(Base):
+    __tablename__ = "company_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    default_sales_tax_rate = Column(Numeric(5, 4), default=0.0)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    
+    # Foreign key
+    user_id = Column(Integer, ForeignKey("users.id"))
+
+    # Relationships
+    user = relationship("User", back_populates="company_settings")
 
 class Client(Base):
     __tablename__ = "clients"
@@ -61,6 +76,10 @@ class Project(Base):
     material_cost = Column(Float, default=0.0)
     permit_cost = Column(Float, default=0.0)
     other_cost = Column(Float, default=0.0)
+    sales_tax_rate = Column(Numeric(5, 4), default=0.0)
+    sales_tax_amount = Column(Numeric(10, 2), default=0.0)
+    is_tax_exempt = Column(Boolean, default=False)
+    total_with_tax = Column(Numeric(10, 2), default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
