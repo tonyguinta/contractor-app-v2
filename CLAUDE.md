@@ -124,17 +124,6 @@ Understanding these files helps navigate the codebase more effectively:
 - Cascade deletes for data integrity
 - Proper indexing on user/project relationships
 
-**Financial Data Types - CRITICAL:**
-- **NEVER use Float for financial calculations** - causes precision errors
-- **ALWAYS use Numeric/Decimal** for all monetary values and percentages
-- Standard precision patterns:
-  - Currency: `Numeric(10, 2)` - up to $99,999,999.99
-  - Tax rates: `Numeric(8, 6)` - precise percentages like 8.750000%
-  - Hours: `Numeric(8, 2)` - precise time like 7.25 hours
-  - Quantities: `Numeric(10, 3)` - precise measurements like 1.375 units
-- Use Python's `decimal.Decimal` in calculations for exact arithmetic
-- This prevents rounding errors that compound over time and ensures legal compliance
-
 **Database Setup:**
 - Development uses SQLite - no setup required, created automatically
 - Production uses PostgreSQL - configured via Railway environment variables

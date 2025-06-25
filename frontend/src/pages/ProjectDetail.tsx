@@ -5,8 +5,7 @@ import { projectsApi, subprojectsApi } from '../api/client'
 import {
   ProjectWithClient,
   SubprojectWithItems,
-  ApiError,
-  ProjectUpdate
+  ApiError
 } from '../types/api'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -163,23 +162,6 @@ const ProjectDetail = () => {
     setSubprojectToDelete(undefined)
   }
 
-  const handleTaxRateChange = async (newRate: number) => {
-    if (!project || !projectId) return
-
-    try {
-      const updateData: ProjectUpdate = {
-        sales_tax_rate: newRate
-      }
-      
-      await projectsApi.update(parseInt(projectId), updateData)
-      await fetchProjectData() // Refresh to get updated calculations
-      toast.success('Sales tax rate updated')
-    } catch (error: any) {
-      console.error('Update tax rate error:', error)
-      toast.error('Failed to update sales tax rate')
-    }
-  }
-
   const formatStatus = (status: string) => {
     return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
@@ -287,11 +269,6 @@ const ProjectDetail = () => {
               laborCost={projectTotals.labor}
               permitsCost={projectTotals.permits}
               otherCost={projectTotals.other}
-              salesTaxRate={project.sales_tax_rate}
-              salesTaxAmount={project.sales_tax_amount}
-              totalWithTax={project.total_with_tax}
-              onTaxRateChange={handleTaxRateChange}
-              showTaxEditor={true}
             />
           </div>
         </div>

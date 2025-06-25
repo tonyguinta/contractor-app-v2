@@ -131,8 +131,6 @@ export const projectsApi = {
     api.put(`/projects/${id}/`, data),
   delete: (id: number): Promise<AxiosResponse<void>> => 
     api.delete(`/projects/${id}/`),
-  calculateTax: (id: number): Promise<AxiosResponse<Project>> =>
-    api.post(`/projects/${id}/calculate-tax`),
 }
 
 // Tasks API
