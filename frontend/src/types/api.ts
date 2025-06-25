@@ -31,6 +31,19 @@ export interface UserLogin {
   password: string
 }
 
+// Company Settings Types
+export interface CompanySettings {
+  id: number
+  default_sales_tax_rate: string // Decimal as string from API
+  user_id: number
+  created_at: string
+  updated_at: string
+}
+
+export interface CompanySettingsUpdate {
+  default_sales_tax_rate: number // Send as number, convert to percentage
+}
+
 // Client Types
 export interface Client {
   id: number
@@ -79,6 +92,10 @@ export interface Project {
   material_cost: number
   permit_cost: number
   other_cost: number
+  sales_tax_rate: string // Decimal as string from API
+  sales_tax_amount: string // Decimal as string from API
+  is_tax_exempt: boolean
+  total_with_tax: string // Decimal as string from API
   created_at: string
   updated_at: string | null
   owner_id: number
@@ -97,6 +114,8 @@ export interface ProjectCreate {
   material_cost?: number
   permit_cost?: number
   other_cost?: number
+  sales_tax_rate?: number | null
+  is_tax_exempt?: boolean
 }
 
 export interface ProjectUpdate {
@@ -112,6 +131,8 @@ export interface ProjectUpdate {
   material_cost?: number | null
   permit_cost?: number | null
   other_cost?: number | null
+  sales_tax_rate?: number | null
+  is_tax_exempt?: boolean | null
 }
 
 export interface ProjectWithClient extends Project {

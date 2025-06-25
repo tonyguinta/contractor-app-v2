@@ -6,6 +6,7 @@ import {
   Invoice, InvoiceCreate, InvoiceUpdate, InvoiceWithClient,
   Task, TaskCreate, TaskUpdate,
   User, UserCreate, UserLogin, Token,
+  CompanySettings, CompanySettingsUpdate,
   Subproject, SubprojectCreate, SubprojectUpdate, SubprojectWithItems,
   MaterialEntry, MaterialEntryCreate,
   MaterialItem, MaterialItemCreate, MaterialItemUpdate,
@@ -219,4 +220,13 @@ export const subprojectsApi = {
   // Cost summary
   getCostSummary: (subprojectId: number): Promise<AxiosResponse<CostSummary>> => 
     api.get(`/subprojects/${subprojectId}/cost-summary`),
+  
+}
+
+// Company API
+export const companyApi = {
+  getSettings: (): Promise<AxiosResponse<CompanySettings>> => 
+    api.get('/company/settings'),
+  updateSettings: (data: CompanySettingsUpdate): Promise<AxiosResponse<CompanySettings>> => 
+    api.put('/company/settings', data),
 } 

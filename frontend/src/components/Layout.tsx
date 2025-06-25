@@ -6,6 +6,7 @@ import {
   Folder, 
   CheckSquare,
   FileText,
+  Settings,
   LogOut,
   Menu,
   X
@@ -23,6 +24,7 @@ const Layout = () => {
     { name: 'Projects', href: '/projects', icon: Folder },
     { name: 'Tasks', href: '/tasks', icon: CheckSquare },
     { name: 'Invoices', href: '/invoices', icon: FileText },
+    { name: 'Company Settings', href: '/company-settings', icon: Settings },
   ]
 
   const isActive = (path: string) => {

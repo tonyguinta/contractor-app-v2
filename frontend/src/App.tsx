@@ -12,6 +12,7 @@ import ProjectDetail from './pages/ProjectDetail'
 import SubprojectDetail from './pages/SubprojectDetail'
 import Tasks from './pages/Tasks'
 import Invoices from './pages/Invoices'
+import CompanySettings from './pages/CompanySettings'
 import LoadingSpinner from './components/LoadingSpinner'
 import ConflictResolutionDialog from './components/ConflictResolutionDialog'
 
@@ -40,6 +41,7 @@ function App() {
             <Route path="projects/:projectId/subprojects/:subprojectId" element={<SubprojectDetail />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="invoices" element={<Invoices />} />
+            <Route path="company-settings" element={<CompanySettings />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Route>
         )}
