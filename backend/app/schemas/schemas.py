@@ -87,7 +87,7 @@ class ProjectBase(BaseModel):
     material_cost: Optional[float] = 0.0
     permit_cost: Optional[float] = 0.0
     other_cost: Optional[float] = 0.0
-    sales_tax_rate: Optional[Decimal] = Field(default=0.0, ge=0, le=0.5, description="Sales tax rate as decimal (0.0875 for 8.75%)")
+    sales_tax_rate: Optional[Decimal] = Field(default=None, ge=0, le=0.5, description="Sales tax rate as decimal (0.0875 for 8.75%)")
     is_tax_exempt: Optional[bool] = False
 
 class ProjectCreate(ProjectBase):

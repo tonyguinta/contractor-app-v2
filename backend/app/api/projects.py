@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app.db.database import get_db
-from app.models.models import Project, User, Client
+from app.models.models import Project, User, Client, CompanySettings
 from app.schemas.schemas import Project as ProjectSchema, ProjectCreate, ProjectUpdate, ProjectWithClient
 from app.core.deps import get_current_active_user
 from app.core.constants import DEFAULT_SKIP, DEFAULT_LIMIT
+from app.utils.calculations import calculate_project_totals, get_company_default_tax_rate
 
 router = APIRouter()
 
@@ -20,7 +21,22 @@ def create_project(
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
-    db_project = Project(**project.dict(), owner_id=current_user.id)
+    # Create project with user data
+    project_data = project.dict()
+    project_data['owner_id'] = current_user.id
+    
+    # Set default tax rate if not provided
+    if project_data.get('sales_tax_rate') is None:
+        default_tax_rate = get_company_default_tax_rate(current_user.id, db)
+        project_data['sales_tax_rate'] = default_tax_rate
+    
+    db_project = Project(**project_data)
+    
+    # Calculate tax totals
+    tax_calculations = calculate_project_totals(db_project, db)
+    db_project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    db_project.total_with_tax = tax_calculations['total_with_tax']
+    
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
@@ -67,6 +83,11 @@ def update_project(
     update_data = project_update.dict(exclude_unset=True)
     for field, value in update_data.items():
         setattr(project, field, value)
+    
+    # Recalculate tax totals after any update
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
     
     db.commit()
     db.refresh(project)
