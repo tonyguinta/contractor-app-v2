@@ -179,6 +179,7 @@ class MaterialEntry(Base):
     category = Column(String)
     unit_price = Column(Numeric(10,2))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Foreign key
     user_id = Column(Integer, ForeignKey("users.id"))
