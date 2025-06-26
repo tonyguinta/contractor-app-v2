@@ -31,9 +31,9 @@ export default function CostSummary({
 
   const formatTaxRate = (rate: string) => {
     const percentage = parseFloat(rate) * 100
-    // Round to 2 decimal places to avoid floating point precision issues
-    const rounded = Math.round(percentage * 100) / 100
-    return `${rounded}%`
+    // Remove floating point artifacts while preserving real precision
+    const cleanPercentage = parseFloat(percentage.toFixed(6))
+    return `${cleanPercentage}%`
   }
 
   const getTaxDisplay = () => {

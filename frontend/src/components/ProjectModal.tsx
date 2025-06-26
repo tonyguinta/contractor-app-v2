@@ -36,14 +36,15 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
           setValue('material_cost', project.material_cost || 0)
           setValue('permit_cost', project.permit_cost || 0)
           setValue('other_cost', project.other_cost || 0)
-          setValue('sales_tax_rate', project.sales_tax_rate ? Math.round(parseFloat(project.sales_tax_rate) * 10000) / 100 : 0)
+          setValue('sales_tax_rate', project.sales_tax_rate ? parseFloat((parseFloat(project.sales_tax_rate) * 100).toFixed(6)) : 0)
           setValue('is_tax_exempt', project.is_tax_exempt || false)
         } else {
           // Reset form for new project and fetch company default tax rate
           try {
             const companySettings = await companyApi.getSettings()
             const defaultTaxRatePercentage = parseFloat(companySettings.data.default_sales_tax_rate) * 100
-            const roundedPercentage = Math.round(defaultTaxRatePercentage * 100) / 100
+            // Remove floating point artifacts while preserving real precision
+            const cleanPercentage = parseFloat(defaultTaxRatePercentage.toFixed(6))
             
             reset({
               title: '',
@@ -54,7 +55,7 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
               material_cost: 0,
               permit_cost: 0,
               other_cost: 0,
-              sales_tax_rate: roundedPercentage === 0 ? 0 : roundedPercentage,
+              sales_tax_rate: cleanPercentage === 0 ? 0 : cleanPercentage,
               is_tax_exempt: false
             })
           } catch (error) {
@@ -107,8 +108,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
         material_cost: Number(data.material_cost || 0),
         permit_cost: Number(data.permit_cost || 0),
         other_cost: Number(data.other_cost || 0),
-        // Convert percentage to decimal with precise arithmetic (7.0 -> 0.0700)
-        sales_tax_rate: data.sales_tax_rate ? parseFloat((Number(data.sales_tax_rate) / 100).toFixed(4)) : 0,
+        // Convert percentage to decimal (7.875 -> 0.07875)
+        sales_tax_rate: data.sales_tax_rate ? Number(data.sales_tax_rate) / 100 : 0,
         start_date: data.start_date ? new Date(data.start_date).toISOString() : null,
         end_date: data.end_date ? new Date(data.end_date).toISOString() : null,
       }
@@ -348,7 +349,7 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                       max: { value: 50, message: 'Tax rate cannot exceed 50%' }
                     })}
                     type="number"
-                    step="0.01"
+                    step="0.000001"
                     min="0"
                     max="50"
                     className="input-field pr-8"

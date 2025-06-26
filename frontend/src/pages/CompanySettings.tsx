@@ -20,9 +20,9 @@ const CompanySettings = () => {
       setSettings(response.data)
       // Convert decimal to percentage for display (0.0700 -> 7.00)
       const percentage = parseFloat(response.data.default_sales_tax_rate) * 100
-      // Round to 2 decimal places to avoid precision issues
-      const roundedPercentage = Math.round(percentage * 100) / 100
-      setTaxRateInput(roundedPercentage === 0 ? '' : roundedPercentage.toString())
+      // Remove floating point artifacts while preserving real precision
+      const cleanPercentage = parseFloat(percentage.toFixed(6))
+      setTaxRateInput(cleanPercentage === 0 ? '' : cleanPercentage.toString())
     } catch (error: any) {
       const apiError = error.response?.data as ApiError
       const message = apiError?.detail || 'Failed to fetch company settings'

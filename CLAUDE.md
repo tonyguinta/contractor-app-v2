@@ -428,3 +428,76 @@ Review this file monthly and surface high-priority items proactively during deve
 - This issue occurred in both production and staging setups
 
 **Prevention**: Don't use `@secret_name` syntax in `vercel.json` unless the secret actually exists. Use Vercel dashboard for environment variable management instead.
+
+## Documentation Architecture
+
+This project maintains comprehensive documentation across multiple files. Understanding this structure is critical for complete work visibility and planning.
+
+### **Core Documentation Files**
+
+- **`CLAUDE.md`** - Development partnership guidelines, commands, and architectural patterns (this file)
+- **`FEATURE_PLANNING.md`** - Strategic roadmap, business requirements, and major feature specifications
+- **`TECHNICAL_DEBT.md`** - Known issues, code quality improvements, and refactoring priorities
+- **`SALES_TAX_IMPLEMENTATION.md`** - Completed feature documentation and implementation details
+- **`MOBILE_PATTERN_GUIDE.md`** - UI/UX standards and mobile-first patterns
+- **`DATABASE_RESET_GUIDE.md`** - Development procedures for database issues
+- **`DEPLOYMENT_GUIDE.md`** - Production and staging deployment procedures
+- **`SETUP_GUIDE.md`** - Initial project setup and environment configuration
+- **`README.md`** - Project overview and quick start guide
+
+### **Specialized Documentation**
+
+- **`frontend/LINTING.md`** - Frontend code quality standards
+- **`instruction-docs/`** - Detailed feature specifications and requirements
+- **`chat-history/`** - Historical development conversations and decisions
+
+## Work Organization & Tracking Process
+
+This project uses a **two-tier system** for comprehensive work tracking:
+
+### **Tier 1: Strategic Roadmap (FEATURE_PLANNING.md)**
+- **Purpose**: Authoritative source for major features and business logic
+- **Content**: Full specifications, technical decisions, business requirements, priority rankings
+- **Usage**: Reference for long-term planning and priority decisions
+- **Scope**: High/medium/low priority features with complete implementation details
+
+### **Tier 2: Active Sprint Todos (TodoWrite tool)**
+- **Purpose**: Track current sprint work and immediate actionable tasks
+- **Content**: Specific implementation steps, bug fixes, small improvements
+- **Usage**: Day-to-day development focus and progress tracking
+- **Scope**: Break down FEATURE_PLANNING.md features into actionable todos when starting implementation
+
+### **When Asked "What's the Full List"**
+
+**Required Process:**
+1. **Read FEATURE_PLANNING.md** - Get major roadmap items and their priority levels
+2. **Read TodoWrite current list** - Get active sprint work and immediate tasks
+3. **Check TECHNICAL_DEBT.md** - Get known issues and improvement opportunities
+4. **Present consolidated view** with clear priority tiers and implementation status
+
+**Response Format:**
+```
+## Strategic Roadmap (from FEATURE_PLANNING.md)
+🔴 High Priority: [list major features]
+🟡 Medium Priority: [list medium features] 
+🟢 Low Priority: [list low priority items]
+
+## Active Sprint Work (from TodoWrite)
+- [current todos with status]
+
+## Technical Debt & Improvements (from TECHNICAL_DEBT.md)
+- [known issues and code quality items]
+```
+
+### **Benefits of This System**
+- **No Duplication**: Each system serves distinct purpose
+- **Complete Visibility**: All work tracked across appropriate documents
+- **Strategic Focus**: Major features planned with full business context
+- **Tactical Execution**: Active work broken into actionable steps
+- **Historical Record**: Decisions and context preserved in documentation
+
+### **Documentation Maintenance**
+- Update FEATURE_PLANNING.md when business requirements change
+- Use TodoWrite for breaking down features into implementation steps
+- Move completed items from TECHNICAL_DEBT.md to resolved sections
+- Reference this process in CLAUDE.md for consistency across sessions
