@@ -76,10 +76,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (userData: RegisterData) => {
     const response = await api.post('/auth/register', userData)
-    setUser(response.data)
     
-    // Auto-login after registration
-    await login(userData.email, userData.password)
+    // Extract token from registration response
+    const { access_token } = response.data
+    
+    // Store token and set auth headers
+    localStorage.setItem('token', access_token)
+    api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`
+    
+    // Fetch current user data with new token
+    const userResponse = await api.get('/auth/me')
+    setUser(userResponse.data)
   }
 
   const logout = () => {
