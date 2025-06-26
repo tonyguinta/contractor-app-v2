@@ -184,17 +184,31 @@ def create_material_item(
     db.commit()
     
     # Save to material entries for future autocomplete
-    material_entry = MaterialEntryCreate(
-        description=material.description,
-        unit=material.unit,
-        category=material.category,
-        unit_price=material.unit_cost
-    )
-    try:
-        create_material_entry(material_entry, db, current_user)
-    except Exception:
-        # Ignore if material entry creation fails (e.g., duplicate)
-        pass
+    # Check if material entry exists and update it if this item is newer
+    existing_entry = db.query(MaterialEntry).filter(
+        MaterialEntry.user_id == current_user.id,
+        MaterialEntry.description.ilike(material.description)
+    ).first()
+    
+    if existing_entry:
+        # Update existing entry with latest values
+        existing_entry.unit = material.unit
+        existing_entry.category = material.category
+        existing_entry.unit_price = material.unit_cost
+        db.commit()
+    else:
+        # Create new entry
+        material_entry = MaterialEntryCreate(
+            description=material.description,
+            unit=material.unit,
+            category=material.category,
+            unit_price=material.unit_cost
+        )
+        try:
+            create_material_entry(material_entry, db, current_user)
+        except Exception:
+            # Ignore if material entry creation fails (e.g., duplicate)
+            pass
     
     return db_material
 
@@ -215,6 +229,20 @@ def update_material_item(
     
     db.commit()
     db.refresh(material)
+    
+    # Update MaterialEntry if this is the most recent usage
+    if material.description:
+        material_entry = db.query(MaterialEntry).filter(
+            MaterialEntry.user_id == current_user.id,
+            MaterialEntry.description.ilike(material.description)
+        ).first()
+        
+        if material_entry:
+            # Update the entry with the latest values from this material item
+            material_entry.unit = material.unit
+            material_entry.category = material.category
+            material_entry.unit_price = material.unit_cost
+            db.commit()
     
     # Recalculate project tax totals
     project = material.subproject.project
