@@ -58,13 +58,14 @@ api.interceptors.response.use(
     
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      // Only redirect if not already on login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login'
+      }
     }
     
     // Handle different error response formats
     let message = 'An error occurred'
-    
-    console.log('API Error Response:', error.response?.data)
     
     if (error.response?.data) {
       const data = error.response.data

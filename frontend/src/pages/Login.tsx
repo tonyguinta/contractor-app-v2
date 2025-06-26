@@ -12,10 +12,22 @@ interface LoginForm {
 const Login = () => {
   const { login } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [loginError, setLoginError] = useState<string | null>(null)
+  const [showRegisterSuggestion, setShowRegisterSuggestion] = useState(false)
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>()
+
+  const clearLoginError = () => {
+    if (loginError) {
+      setLoginError(null)
+      setShowRegisterSuggestion(false)
+    }
+  }
 
   const onSubmit = async (data: LoginForm) => {
     setLoading(true)
+    setLoginError(null)
+    setShowRegisterSuggestion(false)
+    
     try {
       await login(data.email, data.password)
       toast.success('Welcome back!')
@@ -31,47 +43,21 @@ const Login = () => {
     const detail = error.response?.data?.detail
 
     if (status === 401 && detail === 'Incorrect email or password') {
-      // Enhanced error message with registration suggestion
-      toast.error(
-        (t) => (
-          <div className="space-y-2">
-            <div className="font-medium">Unable to sign in</div>
-            <div className="text-sm text-gray-600">
-              The email or password you entered is incorrect.
-            </div>
-            <div className="flex items-center justify-between pt-2">
-              <Link 
-                to="/register" 
-                className="text-sm text-accent-600 hover:text-accent-700 font-medium"
-                onClick={() => toast.dismiss(t.id)}
-              >
-                Create account instead?
-              </Link>
-              <button
-                onClick={() => toast.dismiss(t.id)}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Dismiss
-              </button>
-            </div>
-          </div>
-        ),
-        {
-          duration: 8000,
-          style: {
-            minWidth: '320px',
-          },
-        }
-      )
+      // Show persistent error message suggesting account creation
+      setLoginError('The email or password you entered is incorrect.')
+      setShowRegisterSuggestion(true)
     } else if (status === 422) {
       // Validation errors
-      toast.error('Please check your email and password format')
+      setLoginError('Please check your email and password format')
+      setShowRegisterSuggestion(false)
     } else if (status >= 500) {
       // Server errors
-      toast.error('Server temporarily unavailable. Please try again in a moment.')
+      setLoginError('Server temporarily unavailable. Please try again in a moment.')
+      setShowRegisterSuggestion(false)
     } else {
       // Fallback for other errors
-      toast.error(detail || 'Unable to sign in. Please try again.')
+      setLoginError(detail || 'Unable to sign in. Please try again.')
+      setShowRegisterSuggestion(false)
     }
   }
 
@@ -104,7 +90,8 @@ const Login = () => {
                   pattern: {
                     value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                     message: 'Please enter a valid email address'
-                  }
+                  },
+                  onChange: clearLoginError
                 })}
                 type="text"
                 autoComplete="off"
@@ -129,7 +116,8 @@ const Login = () => {
                   minLength: {
                     value: 1,
                     message: 'Password cannot be empty'
-                  }
+                  },
+                  onChange: clearLoginError
                 })}
                 type="password"
                 autoComplete="off"
@@ -145,6 +133,29 @@ const Login = () => {
               )}
             </div>
           </div>
+
+          {/* Persistent error message */}
+          {loginError && (
+            <div className="rounded-md bg-red-50 border border-red-200 p-4">
+              <div className="text-sm">
+                <p className="font-medium text-red-800">Unable to sign in</p>
+                <p className="text-red-700 mt-1">{loginError}</p>
+                {showRegisterSuggestion && (
+                  <div className="mt-3">
+                    <p className="text-red-700">
+                      Don't have an account?{' '}
+                      <Link 
+                        to="/register" 
+                        className="font-medium text-red-800 hover:text-red-900 underline"
+                      >
+                        Create one here
+                      </Link>
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div>
             <button
