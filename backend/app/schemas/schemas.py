@@ -345,8 +345,8 @@ class ProjectWithSubprojects(Project):
 # Cost summary schemas
 
 class CostSummary(BaseModel):
-    total_materials: float
-    total_labor: float
-    total_permits: float
-    total_other: float
-    estimated_total: float 
+    total_materials: Decimal
+    total_labor: Decimal
+    total_permits: Decimal
+    total_other: Decimal
+    estimated_total: Decimal 

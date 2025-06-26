@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+from decimal import Decimal
 from app.db.database import get_db
 from app.models.models import (
     Subproject, Project, User, MaterialEntry, MaterialItem, 
@@ -17,6 +18,7 @@ from app.schemas.schemas import (
 )
 from app.core.deps import get_current_active_user
 from app.core.constants import DEFAULT_SKIP, DEFAULT_LIMIT
+from app.utils.calculations import calculate_project_totals
 
 router = APIRouter()
 
@@ -174,6 +176,13 @@ def create_material_item(
     db.commit()
     db.refresh(db_material)
     
+    # Recalculate project tax totals
+    project = subproject.project
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     # Save to material entries for future autocomplete
     material_entry = MaterialEntryCreate(
         description=material.description,
@@ -206,6 +215,14 @@ def update_material_item(
     
     db.commit()
     db.refresh(material)
+    
+    # Recalculate project tax totals
+    project = material.subproject.project
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return material
 
 @router.delete("/materials/{material_id}")
@@ -218,8 +235,18 @@ def delete_material_item(
     if not material or material.subproject.project.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Material item not found")
     
+    # Get project reference before deleting
+    project = material.subproject.project
+    
     db.delete(material)
     db.commit()
+    
+    # Recalculate project tax totals
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return {"message": "Material item deleted successfully"}
 
 # Labor Items CRUD
@@ -254,6 +281,14 @@ def create_labor_item(
     db.add(db_labor)
     db.commit()
     db.refresh(db_labor)
+    
+    # Recalculate project tax totals
+    project = subproject.project
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return db_labor
 
 @router.put("/labor/{labor_id}", response_model=LaborItemSchema)
@@ -273,6 +308,14 @@ def update_labor_item(
     
     db.commit()
     db.refresh(labor)
+    
+    # Recalculate project tax totals
+    project = labor.subproject.project
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return labor
 
 @router.delete("/labor/{labor_id}")
@@ -285,8 +328,18 @@ def delete_labor_item(
     if not labor or labor.subproject.project.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Labor item not found")
     
+    # Get project reference before deleting
+    project = labor.subproject.project
+    
     db.delete(labor)
     db.commit()
+    
+    # Recalculate project tax totals
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return {"message": "Labor item deleted successfully"}
 
 # Permit Items CRUD
@@ -321,6 +374,14 @@ def create_permit_item(
     db.add(db_permit)
     db.commit()
     db.refresh(db_permit)
+    
+    # Recalculate project tax totals
+    project = subproject.project
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return db_permit
 
 @router.put("/permits/{permit_id}", response_model=PermitItemSchema)
@@ -340,6 +401,14 @@ def update_permit_item(
     
     db.commit()
     db.refresh(permit)
+    
+    # Recalculate project tax totals
+    project = permit.subproject.project
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return permit
 
 @router.delete("/permits/{permit_id}")
@@ -352,8 +421,18 @@ def delete_permit_item(
     if not permit or permit.subproject.project.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Permit item not found")
     
+    # Get project reference before deleting
+    project = permit.subproject.project
+    
     db.delete(permit)
     db.commit()
+    
+    # Recalculate project tax totals
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return {"message": "Permit item deleted successfully"}
 
 # Other Cost Items CRUD
@@ -388,6 +467,14 @@ def create_other_cost_item(
     db.add(db_other_cost)
     db.commit()
     db.refresh(db_other_cost)
+    
+    # Recalculate project tax totals
+    project = subproject.project
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return db_other_cost
 
 @router.put("/other-costs/{other_cost_id}", response_model=OtherCostItemSchema)
@@ -407,6 +494,14 @@ def update_other_cost_item(
     
     db.commit()
     db.refresh(other_cost)
+    
+    # Recalculate project tax totals
+    project = other_cost.subproject.project
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return other_cost
 
 @router.delete("/other-costs/{other_cost_id}")
@@ -419,8 +514,18 @@ def delete_other_cost_item(
     if not other_cost or other_cost.subproject.project.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Other cost item not found")
     
+    # Get project reference before deleting
+    project = other_cost.subproject.project
+    
     db.delete(other_cost)
     db.commit()
+    
+    # Recalculate project tax totals
+    tax_calculations = calculate_project_totals(project, db)
+    project.sales_tax_amount = tax_calculations['sales_tax_amount']
+    project.total_with_tax = tax_calculations['total_with_tax']
+    db.commit()
+    
     return {"message": "Other cost item deleted successfully"}
 
 # Cost Summary
@@ -435,21 +540,22 @@ def get_subproject_cost_summary(
     if not subproject or subproject.project.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Subproject not found")
     
-    # Calculate totals
-    total_materials = sum(
+    # Calculate totals as Decimal
+    total_materials = Decimal(str(sum(
         item.quantity * item.unit_cost for item in subproject.material_items
-    )
-    total_labor = sum(
+    )))
+    total_labor = Decimal(str(sum(
         item.number_of_workers * item.hourly_rate * item.hours 
         for item in subproject.labor_items
-    )
-    total_permits = sum(item.cost for item in subproject.permit_items)
-    total_other = sum(item.cost for item in subproject.other_cost_items)
+    )))
+    total_permits = Decimal(str(sum(item.cost for item in subproject.permit_items)))
+    total_other = Decimal(str(sum(item.cost for item in subproject.other_cost_items)))
+    estimated_total = total_materials + total_labor + total_permits + total_other
     
     return CostSummary(
         total_materials=total_materials,
         total_labor=total_labor,
         total_permits=total_permits,
         total_other=total_other,
-        estimated_total=total_materials + total_labor + total_permits + total_other
+        estimated_total=estimated_total
     ) 

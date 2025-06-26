@@ -1,30 +1,53 @@
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Dict, Any
 from sqlalchemy.orm import Session
-from app.models.models import CompanySettings, Project
+from sqlalchemy import func, select
+from app.models.models import CompanySettings, Project, Subproject, MaterialItem, LaborItem, PermitItem, OtherCostItem
 
 def calculate_project_totals(project: Project, db: Session) -> Dict[str, Decimal]:
     """
     Calculate project totals with proper tax calculation.
     
-    Calculation order: Base Cost → Markup → Tax → Total
+    Calculation order: Subproject Totals → Markup → Tax → Total
     
     Args:
-        project: Project instance with cost fields
-        db: Database session for company settings lookup
+        project: Project instance
+        db: Database session for subproject queries and company settings lookup
     
     Returns:
         Dict with calculated sales_tax_amount and total_with_tax
     """
-    # Base costs
-    base_cost = Decimal(str(project.estimated_cost or 0))
-    labor_cost = Decimal(str(project.labor_cost or 0))
-    material_cost = Decimal(str(project.material_cost or 0))
-    permit_cost = Decimal(str(project.permit_cost or 0))
-    other_cost = Decimal(str(project.other_cost or 0))
+    # Calculate totals from subproject items
+    subproject_ids_query = select(Subproject.id).where(Subproject.project_id == project.id)
     
-    # Calculate subtotal (base + all costs)
-    subtotal = base_cost + labor_cost + material_cost + permit_cost + other_cost
+    # Materials total: sum(quantity * unit_cost)
+    materials_total = db.query(
+        func.coalesce(func.sum(MaterialItem.quantity * MaterialItem.unit_cost), 0)
+    ).filter(MaterialItem.subproject_id.in_(subproject_ids_query)).scalar() or Decimal('0')
+    
+    # Labor total: sum(number_of_workers * hourly_rate * hours)
+    labor_total = db.query(
+        func.coalesce(func.sum(LaborItem.number_of_workers * LaborItem.hourly_rate * LaborItem.hours), 0)
+    ).filter(LaborItem.subproject_id.in_(subproject_ids_query)).scalar() or Decimal('0')
+    
+    # Permits total: sum(cost)
+    permits_total = db.query(
+        func.coalesce(func.sum(PermitItem.cost), 0)
+    ).filter(PermitItem.subproject_id.in_(subproject_ids_query)).scalar() or Decimal('0')
+    
+    # Other costs total: sum(cost)
+    other_total = db.query(
+        func.coalesce(func.sum(OtherCostItem.cost), 0)
+    ).filter(OtherCostItem.subproject_id.in_(subproject_ids_query)).scalar() or Decimal('0')
+    
+    # Convert to Decimal for precise calculation
+    materials_total = Decimal(str(materials_total))
+    labor_total = Decimal(str(labor_total))
+    permits_total = Decimal(str(permits_total))
+    other_total = Decimal(str(other_total))
+    
+    # Calculate subtotal from subproject items
+    subtotal = materials_total + labor_total + permits_total + other_total
     
     # TODO: Apply markup here when markup system is implemented
     # For now, subtotal_with_markup = subtotal

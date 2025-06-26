@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import { projectsApi, clientsApi } from '../api/client'
+import { projectsApi, clientsApi, companyApi } from '../api/client'
 import { ProjectWithClient, ProjectCreate, Client } from '../types/api'
 import toast from 'react-hot-toast'
 
@@ -36,18 +36,42 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
           setValue('material_cost', project.material_cost || 0)
           setValue('permit_cost', project.permit_cost || 0)
           setValue('other_cost', project.other_cost || 0)
+          setValue('sales_tax_rate', project.sales_tax_rate ? Math.round(parseFloat(project.sales_tax_rate) * 10000) / 100 : 0)
+          setValue('is_tax_exempt', project.is_tax_exempt || false)
         } else {
-          // Reset form for new project
-          reset({
-            title: '',
-            description: '',
-            status: 'planning',
-            estimated_cost: 0,
-            labor_cost: 0,
-            material_cost: 0,
-            permit_cost: 0,
-            other_cost: 0
-          })
+          // Reset form for new project and fetch company default tax rate
+          try {
+            const companySettings = await companyApi.getSettings()
+            const defaultTaxRatePercentage = parseFloat(companySettings.data.default_sales_tax_rate) * 100
+            const roundedPercentage = Math.round(defaultTaxRatePercentage * 100) / 100
+            
+            reset({
+              title: '',
+              description: '',
+              status: 'planning',
+              estimated_cost: 0,
+              labor_cost: 0,
+              material_cost: 0,
+              permit_cost: 0,
+              other_cost: 0,
+              sales_tax_rate: roundedPercentage === 0 ? 0 : roundedPercentage,
+              is_tax_exempt: false
+            })
+          } catch (error) {
+            // Fallback to 0 if company settings fetch fails
+            reset({
+              title: '',
+              description: '',
+              status: 'planning',
+              estimated_cost: 0,
+              labor_cost: 0,
+              material_cost: 0,
+              permit_cost: 0,
+              other_cost: 0,
+              sales_tax_rate: 0,
+              is_tax_exempt: false
+            })
+          }
         }
       }
       
@@ -83,6 +107,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
         material_cost: Number(data.material_cost || 0),
         permit_cost: Number(data.permit_cost || 0),
         other_cost: Number(data.other_cost || 0),
+        // Convert percentage to decimal with precise arithmetic (7.0 -> 0.0700)
+        sales_tax_rate: data.sales_tax_rate ? parseFloat((Number(data.sales_tax_rate) / 100).toFixed(4)) : 0,
         start_date: data.start_date ? new Date(data.start_date).toISOString() : null,
         end_date: data.end_date ? new Date(data.end_date).toISOString() : null,
       }
@@ -304,6 +330,66 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
                   autoComplete="off"
                   data-form-type="other"
                 />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">Tax Configuration</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Sales Tax Rate (%)
+                </label>
+                <div className="relative">
+                  <input
+                    {...register('sales_tax_rate', { 
+                      min: { value: 0, message: 'Tax rate cannot be negative' },
+                      max: { value: 50, message: 'Tax rate cannot exceed 50%' }
+                    })}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="50"
+                    className="input-field pr-8"
+                    placeholder="7.5"
+                    autoComplete="off"
+                    data-form-type="other"
+                  />
+                  <span className="absolute inset-y-0 right-3 flex items-center text-gray-500 text-sm">
+                    %
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Enter as percentage (7.5 for 7.5%)
+                </p>
+                {errors.sales_tax_rate && (
+                  <p className="mt-1 text-sm text-red-600">{errors.sales_tax_rate.message}</p>
+                )}
+              </div>
+
+              <div className="flex items-center h-fit pt-8">
+                <input
+                  {...register('is_tax_exempt')}
+                  type="checkbox"
+                  className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  autoComplete="off"
+                  data-form-type="other"
+                />
+                <label className="ml-2 text-sm font-medium text-gray-700">
+                  Tax Exempt Project
+                </label>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-blue-50 rounded-md">
+              <div className="flex items-start">
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium mb-1">Tax Information</p>
+                  <p>
+                    Tax is applied to the full project total. Note: Labor and permit fees may not be taxable in your jurisdiction. Adjust the tax rate accordingly.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

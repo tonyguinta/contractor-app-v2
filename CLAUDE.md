@@ -87,6 +87,8 @@ python3 -c "from app.db.database import engine; from app.models.models import Ba
 
 **IMPORTANT**: Always use `python3` instead of `python` on this system. The `python` command is not available.
 
+**IMPORTANT**: Do NOT start backend/frontend servers via tools to avoid port conflicts. The user prefers to restart servers manually when needed. Simply request restart when required.
+
 ## Key Development Files
 
 Understanding these files helps navigate the codebase more effectively:

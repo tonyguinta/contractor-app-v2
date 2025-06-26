@@ -25,11 +25,6 @@ def create_project(
     project_data = project.dict()
     project_data['owner_id'] = current_user.id
     
-    # Set default tax rate if not provided
-    if project_data.get('sales_tax_rate') is None:
-        default_tax_rate = get_company_default_tax_rate(current_user.id, db)
-        project_data['sales_tax_rate'] = default_tax_rate
-    
     db_project = Project(**project_data)
     
     # Calculate tax totals

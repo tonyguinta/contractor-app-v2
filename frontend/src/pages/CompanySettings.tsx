@@ -18,9 +18,11 @@ const CompanySettings = () => {
     try {
       const response = await companyApi.getSettings()
       setSettings(response.data)
-      // Convert decimal to percentage for display (0.0875 -> 8.75)
+      // Convert decimal to percentage for display (0.0700 -> 7.00)
       const percentage = parseFloat(response.data.default_sales_tax_rate) * 100
-      setTaxRateInput(percentage === 0 ? '' : percentage.toString())
+      // Round to 2 decimal places to avoid precision issues
+      const roundedPercentage = Math.round(percentage * 100) / 100
+      setTaxRateInput(roundedPercentage === 0 ? '' : roundedPercentage.toString())
     } catch (error: any) {
       const apiError = error.response?.data as ApiError
       const message = apiError?.detail || 'Failed to fetch company settings'
@@ -42,7 +44,7 @@ const CompanySettings = () => {
 
     setSaving(true)
     try {
-      // Convert percentage to decimal for API (8.75 -> 0.0875)
+      // Convert percentage to decimal for API (7.5 -> 0.075)
       const decimalRate = taxRate / 100
       const response = await companyApi.updateSettings({
         default_sales_tax_rate: decimalRate

@@ -269,6 +269,10 @@ const ProjectDetail = () => {
               laborCost={projectTotals.labor}
               permitsCost={projectTotals.permits}
               otherCost={projectTotals.other}
+              salesTaxRate={project?.sales_tax_rate}
+              salesTaxAmount={project?.sales_tax_amount}
+              isTaxExempt={project?.is_tax_exempt}
+              totalWithTax={project?.total_with_tax}
             />
           </div>
         </div>

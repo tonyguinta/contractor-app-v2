@@ -39,16 +39,41 @@
 - **Default Behavior**: Use contractor's home state tax as company default
 - **Override Capability**: Per-project tax rate override
 
-**Questions to Answer Before Implementation:**
-- Should we validate tax rates (0-50% range)?
-- How do we handle tax-exempt projects?
-- Do we need separate tax rates for materials vs labor?
-- What tax breakdown detail should invoices show (state/county/local)?
+**RESOLVED - Final Implementation Specification:**
 
-**Migration Considerations:**
-- Add `tax_rate`, `tax_amount`, `total_with_tax` columns to projects table
-- Create company settings table for default tax rate
-- Migrate existing projects with zero tax rate
+**Database Design:**
+- `sales_tax_rate` - Decimal(5,4) storing 0.0875 for 8.75%
+- `sales_tax_amount` - Decimal(10,2) storing rounded tax in cents  
+- `is_tax_exempt` - Boolean override that sets tax to 0%
+- `total_with_tax` - Decimal(10,2) final project total
+- `company_settings` table with `default_sales_tax_rate` field
+
+**Calculation Logic:**
+- **Order**: Base Cost → Markup → Tax (rounded to cents) → Final Total
+- **Tax Exempt**: Boolean override bypasses all tax calculation
+- **Precision**: Tax rounded to nearest cent at calculation time
+
+**User Experience:**
+- **Input Format**: Percentage with % suffix (8.75%)
+- **Storage Format**: Decimal (0.0875) with 4 decimal precision
+- **Display Format**: Rounded to 2 decimal places
+- **Validation**: 0-50% range with warning above 25%
+- **Settings Location**: Company Settings page in sidebar
+- **Tax Exempt**: Project-level checkbox override
+
+**API Design:**
+- `GET/PUT /company/settings` - Company-wide defaults
+- Modified `/projects/:id` endpoints include tax logic
+- Company settings independent of user/project entities
+
+**Migration Strategy:**
+- Safe batch update: `sales_tax_rate = 0.0`, `is_tax_exempt = false`
+- No recalculation of existing project totals during migration
+- Recalculation only occurs on next project save/edit
+
+**User Documentation:**
+- Tooltip text: "Tax is applied to the full project total. Note: Labor and permit fees may not be taxable in your jurisdiction. Adjust the tax rate accordingly."
+- Applied to both Project Edit modal and Company Settings page
 
 ---
 
@@ -242,11 +267,12 @@
 5. ✅ Consider impact on existing features
 6. ✅ Define testing approach for staging environment
 
-### **Sales Tax Implementation (Next Up):**
-- [ ] Decide on tax rate validation ranges
-- [ ] Design company settings data structure
-- [ ] Plan migration for existing projects
-- [ ] Research tax-exempt project handling
+### **Sales Tax Implementation (IN PROGRESS):**
+- ✅ Tax rate validation: 0-50% with >25% warning
+- ✅ Company settings design: Simple table with default_sales_tax_rate
+- ✅ Migration strategy: Safe batch update to 0%, no recalculation
+- ✅ Tax-exempt handling: Project-level boolean override
+- ✅ All technical specifications finalized
 
 ### **Markup System Implementation:**
 - [ ] Finalize markup storage approach (per-category vs project-wide)
