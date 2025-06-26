@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../context/AuthContext'
@@ -16,9 +16,33 @@ interface RegisterForm {
 const Register = () => {
   const { register: registerUser } = useAuth()
   const [loading, setLoading] = useState(false)
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<RegisterForm>()
+  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm<RegisterForm>()
   
   const password = watch('password')
+
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digit characters
+    const phoneNumber = value.replace(/[^\d]/g, '')
+    
+    // Limit to 10 digits
+    const truncated = phoneNumber.slice(0, 10)
+    
+    // Format as (XXX) XXX-XXXX
+    if (truncated.length >= 6) {
+      return `(${truncated.slice(0, 3)}) ${truncated.slice(3, 6)}-${truncated.slice(6)}`
+    } else if (truncated.length >= 3) {
+      return `(${truncated.slice(0, 3)}) ${truncated.slice(3)}`
+    } else if (truncated.length > 0) {
+      return `(${truncated}`
+    }
+    
+    return ''
+  }
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatPhoneNumber(e.target.value)
+    setValue('phone', formatted)
+  }
 
   const handleRegistrationError = (error: any) => {
     const status = error.response?.status
@@ -174,7 +198,9 @@ const Register = () => {
                 Phone Number (Optional)
               </label>
               <input
-                {...register('phone')}
+                {...register('phone', {
+                  onChange: handlePhoneChange
+                })}
                 type="text"
                 autoComplete="off"
                 autoCorrect="off"
@@ -182,7 +208,7 @@ const Register = () => {
                 spellCheck="false"
                 data-form-type="other"
                 className="input-field"
-                placeholder="Enter your phone number"
+                placeholder="(555) 555-5555"
               />
             </div>
             
