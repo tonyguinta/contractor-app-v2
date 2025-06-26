@@ -123,7 +123,7 @@ class Invoice(Base):
     title = Column(String)
     description = Column(Text)
     amount = Column(Numeric(10,2))
-    tax_rate = Column(Numeric(5,4), default=0.0)
+    tax_rate = Column(Numeric(6,6), default=0.0)
     tax_amount = Column(Numeric(10,2), default=0.0)
     total_amount = Column(Numeric(10,2))
     status = Column(String, default=INVOICE_STATUS_DRAFT)  # draft, sent, paid, overdue
