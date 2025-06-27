@@ -197,17 +197,49 @@ This project uses Alembic for database schema migrations, providing version cont
 **Railway CLI Commands (Production Debugging):**
 For comprehensive Railway CLI commands, see [RAILWAY_CLI_REFERENCE.md](RAILWAY_CLI_REFERENCE.md).
 
+**Common Migration Issues & Solutions:**
+
+**Issue: Alembic not installed during Railway deployment**
+- **Cause**: Railway was using root `requirements.txt` instead of `backend/requirements.txt`
+- **Solution**: Add alembic to root `requirements.txt` file (Railway auto-detects this file)
+- **Lesson**: Check which requirements.txt file Railway actually uses for pip install
+
+**Issue: Migration files with duplicate dependencies**
+- **Cause**: Multiple migration files or incorrect `down_revision` references
+- **Solution**: Keep only one migration file per feature, ensure proper dependency chain
+- **Fix**: Set `down_revision = None` for base migrations, delete duplicate files
+
+**Issue: Migration marked as applied but not executed**
+- **Cause**: Using `alembic stamp head` instead of `alembic upgrade head`
+- **Solution**: 
+  1. Delete record from `alembic_version` table manually if needed
+  2. Use `alembic upgrade head` to actually execute the migration
+- **Debugging**: Check alembic_version table to see current migration state
+
+**Issue: Index already exists errors in auto-generated migrations**
+- **Cause**: Alembic auto-generates index creation for existing indexes
+- **Solution**: Remove index creation/deletion commands from migration files
+- **Prevention**: Review auto-generated migrations carefully before committing
+
+**Railway Deployment Requirements:**
+- **Alembic must be in root requirements.txt** (not just backend/requirements.txt)
+- **Use full PATH in railway.toml**: `PATH=/opt/venv/bin:$PATH alembic upgrade head`
+- **Railway startup command runs in container root**, so `cd backend` is required
+- **Migration runs before server starts**, ensuring schema is updated before app launch
+
 **Quick Database Debugging:**
 ```bash
-# Essential commands for migration issues
-railway logs --deployment      # Check for migration errors
-railway connect               # Access PostgreSQL shell
-railway variables             # Verify DATABASE_URL
-railway redeploy              # Force redeploy if needed
+# Railway debugging commands
+railway logs --deployment          # Check for migration errors
+railway variables                  # Verify DATABASE_URL and other env vars
+railway connect                    # Connect to PostgreSQL shell
+railway redeploy                   # Force redeploy if needed
 
 # In PostgreSQL shell (via railway connect):
-\d projects                   # Check table structure  
-SELECT * FROM alembic_version; # Check migration history
+\d projects                        # Check table structure
+\d company_settings                # Check company settings table
+SELECT * FROM alembic_version;     # Check current migration state
+DELETE FROM alembic_version WHERE version_num = 'revision_id';  # Reset migration state if needed
 ```
 
 ## Key Development Patterns
