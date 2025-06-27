@@ -7,8 +7,16 @@ This document outlines the complete implementation plan for markup and discount 
 - ✅ **Stop at the end of each phase** to verify success criteria
 - ✅ **Get positive affirmation** before proceeding to next phase
 - ✅ **Test thoroughly** at each phase boundary
-- ✅ **Commit frequently** with focused, small commits
+- ✅ **COMMIT ONLY AFTER USER VERIFICATION** - Never commit untested code
 - ✅ **Ask for approval** - err on the side of too much rather than too little
+
+## **Commit & Push Protocol**
+1. **Code & Request Testing**: Complete implementation work and ask user to test/verify
+2. **User Testing**: User tests functionality and reports results
+3. **Commit After Verification**: Only commit once user confirms implementation works
+4. **Push When Ordered**: Only push to staging/production when explicitly requested
+
+**CRITICAL**: Never commit code that hasn't been user-tested. Keep commit history clean with verified, working implementations only.
 
 ---
 
@@ -243,18 +251,19 @@ This document outlines the complete implementation plan for markup and discount 
 - Test percent vs flat combinations
 - Verify rounding accuracy
 
-#### **6C: Staging Deployment** *(15 mins)*
-- Commit all changes with descriptive messages
-- Deploy to staging environment
-- Test migration on staging PostgreSQL database
-- Verify all functionality works in staging
+#### **6C: User Verification & Deployment** *(15 mins)*
+- Request user testing of complete workflow
+- **Only after user confirmation**: Commit all changes with descriptive messages
+- **Only when user requests**: Deploy to staging environment
+- **Only when user requests**: Deploy to production environment
 
 ### **Testing Steps:**
 1. Complete workflow testing locally
 2. Test all validation scenarios
 3. Verify audit trail captures all changes
 4. Check calculation accuracy across different scenarios
-5. Deploy to staging and retest key workflows
+5. **Request user verification of all functionality**
+6. **Only after user approval**: Deploy to staging and retest key workflows
 
 ### **✅ Phase 6 Success Criteria:**
 - [ ] Complete markup workflow functional end-to-end
@@ -263,9 +272,9 @@ This document outlines the complete implementation plan for markup and discount 
 - [ ] Discount system works correctly with warnings
 - [ ] Audit trail captures all markup changes
 - [ ] All calculations accurate across different scenarios
-- [ ] Staging environment migration successful
+- [ ] **USER HAS TESTED AND VERIFIED ALL FUNCTIONALITY**
 - [ ] No regressions in existing functionality
-- [ ] Ready for final user approval
+- [ ] **User has approved deployment to staging/production**
 
 ### **🛑 APPROVAL GATE: Wait for positive confirmation before marking complete**
 
@@ -301,7 +310,10 @@ If any phase fails its success criteria:
 - Phase 6 includes staging deployment and verification
 - Production deployment only after successful staging verification and final approval
 
-**REMEMBER: Ask for explicit approval at every approval gate! 🛑**
+**REMEMBER: 
+- Ask for explicit approval at every approval gate! 🛑
+- NEVER commit without user testing and verification! ⚠️
+- NEVER push without explicit user request! 🚨**
 
 ---
 

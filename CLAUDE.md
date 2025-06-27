@@ -302,7 +302,15 @@ Based on successful sales tax implementation, use the same approach for major fe
 2. **Clear success criteria** for each phase
 3. **Approval gates** between phases
 4. **Test thoroughly** at each boundary
-5. **Commit frequently** with focused commits
+5. **COMMIT ONLY AFTER USER VERIFICATION** - Never commit untested code
+
+### **Strict Commit & Push Protocol**
+1. **Code & Request Testing**: Complete implementation work and ask user to test/verify
+2. **User Testing**: User tests functionality and reports results
+3. **Commit After Verification**: Only commit once user confirms implementation works
+4. **Push When Ordered**: Only push to staging/production when explicitly requested
+
+**CRITICAL**: Keep commit history clean with verified, working implementations only.
 
 ### **Current Implementation Priorities**
 1. **Markup System** - Use `MARKUP_SYSTEM_IMPLEMENTATION.md` guide
