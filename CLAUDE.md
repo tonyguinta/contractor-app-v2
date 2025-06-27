@@ -99,6 +99,7 @@ Understanding these files helps navigate the codebase more effectively:
 - `MARKUP_SYSTEM_IMPLEMENTATION.md` - Phased markup/discount implementation plan (🚀 READY)
 - `TECHNICAL_DEBT.md` - Current architectural concerns and improvement priorities
 - `DATABASE_RESET_GUIDE.md` - Step-by-step database reset procedures for development issues
+- `RAILWAY_CLI_REFERENCE.md` - Comprehensive Railway CLI commands for deployment debugging
 
 ## Architecture Overview
 
@@ -137,6 +138,77 @@ Understanding these files helps navigate the codebase more effectively:
 
 **Database Reset:**
 For development database issues, see `DATABASE_RESET_GUIDE.md` for step-by-step reset procedures.
+
+**Database Migrations (Alembic):**
+This project uses Alembic for database schema migrations, providing version control for database changes.
+
+**Migration Commands:**
+```bash
+# Create new migration (auto-generate from model changes)
+./venv/bin/python -m alembic revision --autogenerate -m "Description of changes"
+
+# Apply all pending migrations
+./venv/bin/python -m alembic upgrade head
+
+# Check current migration status
+./venv/bin/python -m alembic current
+
+# Check if database is up to date
+./venv/bin/python -m alembic check
+
+# Rollback to previous migration
+./venv/bin/python -m alembic downgrade -1
+
+# Rollback to specific revision
+./venv/bin/python -m alembic downgrade <revision_id>
+
+# View migration history
+./venv/bin/python -m alembic history
+```
+
+**Migration Workflow:**
+1. **Modify models** in `backend/app/models/models.py`
+2. **Generate migration**: `alembic revision --autogenerate -m "Add new feature"`
+3. **Review migration file** in `backend/alembic/versions/` for accuracy
+4. **Test locally**: `alembic upgrade head` to apply changes
+5. **Commit migration file** along with model changes
+6. **Deploy**: Railway automatically runs `alembic upgrade head` on deployment
+
+**Production Deployment:**
+- Railway runs `alembic upgrade head` before starting the server (configured in `railway.toml` and `Procfile`)
+- Migrations are applied automatically on every deployment
+- Zero-downtime migrations for additive changes (new columns, tables)
+- Breaking changes require coordination with application code
+
+**Migration Best Practices:**
+- Always review auto-generated migrations before committing
+- Test migrations locally before deploying
+- Use descriptive migration messages
+- Never edit existing migration files (create new ones instead)
+- Keep migrations small and focused on single changes
+- Consider data migration needs for complex schema changes
+
+**Rollback Strategy:**
+- Local development: Use `alembic downgrade` commands freely
+- Production: Coordinate rollbacks with application deployments
+- Always test rollback procedures in staging first
+- Document any manual data fixes needed for rollbacks
+
+**Railway CLI Commands (Production Debugging):**
+For comprehensive Railway CLI commands, see [RAILWAY_CLI_REFERENCE.md](RAILWAY_CLI_REFERENCE.md).
+
+**Quick Database Debugging:**
+```bash
+# Essential commands for migration issues
+railway logs --deployment      # Check for migration errors
+railway connect               # Access PostgreSQL shell
+railway variables             # Verify DATABASE_URL
+railway redeploy              # Force redeploy if needed
+
+# In PostgreSQL shell (via railway connect):
+\d projects                   # Check table structure  
+SELECT * FROM alembic_version; # Check migration history
+```
 
 ## Key Development Patterns
 

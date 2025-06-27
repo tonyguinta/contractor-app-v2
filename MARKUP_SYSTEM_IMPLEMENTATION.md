@@ -30,24 +30,36 @@ This document outlines the complete implementation plan for markup and discount 
   - `default_material_markup_percent` - NUMERIC(7,4), default=0.0
   - `default_labor_markup_percent` - NUMERIC(7,4), default=0.0
 
-#### **1B: Add Project Markup/Discount Fields** *(25 mins)*  
+#### **1B: Add Project Markup/Discount Fields** *(30 mins)*  
 - Add to existing `Project` model in `models.py`:
   - `material_markup_type` - VARCHAR(10), default='percent'
-  - `material_markup_value` - NUMERIC(7,4), default=0.0
+  - `material_markup_percent` - NUMERIC(7,4), default=0.0
+  - `material_markup_flat` - NUMERIC(10,2), default=0.0
   - `labor_markup_type` - VARCHAR(10), default='percent'
-  - `labor_markup_value` - NUMERIC(7,4), default=0.0
+  - `labor_markup_percent` - NUMERIC(7,4), default=0.0
+  - `labor_markup_flat` - NUMERIC(10,2), default=0.0
   - `material_discount_type` - VARCHAR(10), default='percent'
-  - `material_discount_value` - NUMERIC(10,2), default=0.0
+  - `material_discount_percent` - NUMERIC(7,4), default=0.0
+  - `material_discount_flat` - NUMERIC(10,2), default=0.0
   - `labor_discount_type` - VARCHAR(10), default='percent'
-  - `labor_discount_value` - NUMERIC(10,2), default=0.0
+  - `labor_discount_percent` - NUMERIC(7,4), default=0.0
+  - `labor_discount_flat` - NUMERIC(10,2), default=0.0
   - `project_discount_type` - VARCHAR(10), default='percent'
-  - `project_discount_value` - NUMERIC(10,2), default=0.0
+  - `project_discount_percent` - NUMERIC(7,4), default=0.0
+  - `project_discount_flat` - NUMERIC(10,2), default=0.0
+
+**Note**: Using separate columns ensures proper precision - NUMERIC(7,4) for percentages, NUMERIC(10,2) for currency. Only one value field should be non-zero based on type setting.
 
 #### **1C: Create Markup Changes Audit Table** *(15 mins)*
 - Create new `MarkupChange` model:
-  - `id`, `project_id` (FK), `user_id` (FK)
-  - `field_changed`, `old_value`, `new_value`, `change_reason`
-  - Standard timestamps: `created_at`
+  - `id` - SERIAL PRIMARY KEY
+  - `project_id` - INTEGER REFERENCES projects(id) ON DELETE CASCADE
+  - `user_id` - INTEGER REFERENCES users(id) ON DELETE SET NULL
+  - `field_changed` - VARCHAR(50) NOT NULL (e.g., 'material_markup_percent')
+  - `old_value` - VARCHAR(20) (display format: '20%', '$200.00')
+  - `new_value` - VARCHAR(20) NOT NULL (display format: '20%', '$200.00')
+  - `change_reason` - TEXT (optional user explanation)
+  - `created_at` - TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
 ### **Testing Steps:**
 1. Run `python3 run.py` locally
@@ -57,8 +69,14 @@ This document outlines the complete implementation plan for markup and discount 
 
 ### **✅ Phase 1 Success Criteria:**
 - [ ] Local database migrated without errors
+- [ ] Project model has all 15 markup/discount fields with correct types:
+  - 5 type fields (VARCHAR(10), default='percent') 
+  - 5 percent fields (NUMERIC(7,4), default=0.0)
+  - 5 flat fields (NUMERIC(10,2), default=0.0)
+- [ ] CompanySettings model has 2 new markup default fields (NUMERIC(7,4))
 - [ ] All existing projects have default markup/discount values (0.0)
-- [ ] `markup_changes` table created successfully
+- [ ] `markup_changes` table created with correct schema (6 fields)
+- [ ] New fields do NOT appear in `/docs` API documentation (no schema updates yet)
 - [ ] No breaking changes to existing functionality
 - [ ] Can still create/edit projects without markup fields
 
@@ -66,35 +84,46 @@ This document outlines the complete implementation plan for markup and discount 
 
 ---
 
-## **Phase 2: Schema & API Foundation** ⏱️ *45-60 mins*
+## **Phase 2: Schema & API Foundation** ⏱️ *50-65 mins*
 **Goal**: Update schemas and add basic API support
 
 ### **Tasks:**
 
-#### **2A: Update Schemas** *(30 mins)*
+#### **2A: Update Schemas** *(35 mins)*
 - Update `backend/app/schemas/schemas.py`:
-  - Add markup/discount fields to `Project`, `ProjectCreate`, `ProjectUpdate`
+  - Add all 15 markup/discount fields to `Project`, `ProjectCreate`, `ProjectUpdate`
+  - Include proper Optional typing for percent/flat fields
   - Add company markup defaults to `CompanySettings`, `CompanySettingsUpdate`
   - Create `MarkupChange` schemas
+  - Add validation to ensure type/value consistency
 
 #### **2B: Update Company Settings API** *(15 mins)*
 - Modify existing company settings endpoints to include markup defaults
 - Ensure proper validation for markup percentages (0-300%)
 
-#### **2C: Add Markup Change Tracking** *(15 mins)*
+#### **2C: Add Validation Helper & Change Tracking** *(20 mins)*
+- Create validation helper to ensure only one value field is set based on type:
+  ```python
+  def validate_markup_discount_fields(data):
+      # If type='percent', flat field must be 0
+      # If type='flat', percent field must be 0
+  ```
 - Create helper function to log markup changes
 - Integration points identified (will implement in Phase 3)
 
 ### **Testing Steps:**
-1. Check `/docs` shows new markup fields in project schemas
+1. Check `/docs` shows all 15 markup/discount fields with correct types
 2. Test GET `/company/settings` includes markup defaults
 3. Test PUT `/company/settings` with markup defaults
 4. Verify schema validation works (negative values rejected)
+5. Test type/value consistency validation
+6. Verify proper Optional typing for all fields
 
 ### **✅ Phase 2 Success Criteria:**
-- [ ] All markup/discount fields visible in API documentation
-- [ ] Company settings API includes markup defaults
-- [ ] Schema validation prevents invalid values
+- [ ] All 15 markup/discount fields visible in API documentation with correct types
+- [ ] Company settings API includes markup defaults (percent only)
+- [ ] Schema validation prevents invalid values (negatives, out of range)
+- [ ] Type/value consistency validation working (only one value field set)
 - [ ] Markup change tracking helper function created
 - [ ] No breaking changes to existing API calls
 
@@ -161,15 +190,18 @@ This document outlines the complete implementation plan for markup and discount 
 
 #### **4A: Update Company Settings Page** *(45 mins)*
 - Modify existing `frontend/src/pages/CompanySettings.tsx`
-- Add markup default inputs for Materials and Labor
-- Percentage format with % suffix
+- Add tabbed interface for better organization (General, Tax, Markup)
+- Add markup default inputs for Materials and Labor (percent only)
+- Percentage format with % suffix, 0.01% minimum validation
 - Include tooltips about markup vs discount visibility
+- Smart defaults: 20% materials, 15% labor as suggested starting points
 
-#### **4B: Form Validation** *(30 mins)*
-- 0-300% range validation with warning above 100%
-- Convert percentage input (20%) to decimal (0.20) for API
-- Show validation errors and warnings clearly
-- Real-time feedback for unusual values
+#### **4B: Enhanced Form Validation** *(30 mins)*
+- Stepped validation: 0.01% minimum, warning at 100%, hard cap at 300%
+- Convert percentage input (20%) to decimal (0.2000) for API
+- Visual warning badges for values >100%
+- Override workflow for values >300% with confirmation dialog
+- Real-time feedback with color-coded validation states
 
 #### **4C: Default Inheritance Testing** *(15 mins)*
 - Verify company defaults save and persist
