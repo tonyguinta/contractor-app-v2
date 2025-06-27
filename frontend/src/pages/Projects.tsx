@@ -121,15 +121,12 @@ const Projects = () => {
                 <p className="text-sm text-gray-600 mb-4 line-clamp-2">{project.description}</p>
               )}
               
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500">Estimated Cost</p>
-                  <p className="font-medium text-gray-900">${project.estimated_cost.toLocaleString()}</p>
+                  <p className="text-gray-500">Total Cost (with tax)</p>
+                  <p className="font-medium text-gray-900">${(project.total_with_tax || 0).toLocaleString()}</p>
                 </div>
-                <div>
-                  <p className="text-gray-500">Actual Cost</p>
-                  <p className="font-medium text-gray-900">${project.actual_cost.toLocaleString()}</p>
-                </div>
+                {/* Estimated cost will be calculated from subproject data in future implementation */}
               </div>
               
               <div className="mt-4 pt-4 border-t border-gray-200">

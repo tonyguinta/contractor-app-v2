@@ -29,13 +29,8 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
           setValue('description', project.description || '')
           setValue('status', project.status)
           setValue('client_id', project.client_id)
-          setValue('estimated_cost', project.estimated_cost)
           setValue('start_date', project.start_date ? project.start_date.split('T')[0] : '')
           setValue('end_date', project.end_date ? project.end_date.split('T')[0] : '')
-          setValue('labor_cost', project.labor_cost || 0)
-          setValue('material_cost', project.material_cost || 0)
-          setValue('permit_cost', project.permit_cost || 0)
-          setValue('other_cost', project.other_cost || 0)
           setValue('sales_tax_rate', project.sales_tax_rate ? parseFloat((parseFloat(project.sales_tax_rate) * 100).toFixed(6)) : 0)
           setValue('is_tax_exempt', project.is_tax_exempt || false)
         } else {
@@ -50,11 +45,6 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
               title: '',
               description: '',
               status: 'planning',
-              estimated_cost: 0,
-              labor_cost: 0,
-              material_cost: 0,
-              permit_cost: 0,
-              other_cost: 0,
               sales_tax_rate: cleanPercentage === 0 ? 0 : cleanPercentage,
               is_tax_exempt: false
             })
@@ -64,11 +54,6 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
               title: '',
               description: '',
               status: 'planning',
-              estimated_cost: 0,
-              labor_cost: 0,
-              material_cost: 0,
-              permit_cost: 0,
-              other_cost: 0,
               sales_tax_rate: 0,
               is_tax_exempt: false
             })
@@ -103,11 +88,6 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
     try {
       const projectData = {
         ...data,
-        estimated_cost: Number(data.estimated_cost),
-        labor_cost: Number(data.labor_cost || 0),
-        material_cost: Number(data.material_cost || 0),
-        permit_cost: Number(data.permit_cost || 0),
-        other_cost: Number(data.other_cost || 0),
         // Convert percentage to decimal (7.875 -> 0.07875)
         sales_tax_rate: data.sales_tax_rate ? Number(data.sales_tax_rate) / 100 : 0,
         start_date: data.start_date ? new Date(data.start_date).toISOString() : null,
@@ -250,90 +230,6 @@ const ProjectModal = ({ isOpen, onClose, onSuccess, project }: ProjectModalProps
             />
           </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Cost Breakdown</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Estimated Total Cost
-                </label>
-                <input
-                  {...register('estimated_cost')}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="input-field"
-                  placeholder="0.00"
-                  autoComplete="off"
-                  data-form-type="other"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Labor Cost
-                </label>
-                <input
-                  {...register('labor_cost')}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="input-field"
-                  placeholder="0.00"
-                  autoComplete="off"
-                  data-form-type="other"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Material Cost
-                </label>
-                <input
-                  {...register('material_cost')}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="input-field"
-                  placeholder="0.00"
-                  autoComplete="off"
-                  data-form-type="other"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Permit Cost
-                </label>
-                <input
-                  {...register('permit_cost')}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="input-field"
-                  placeholder="0.00"
-                  autoComplete="off"
-                  data-form-type="other"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Other Costs
-                </label>
-                <input
-                  {...register('other_cost')}
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  className="input-field"
-                  placeholder="0.00"
-                  autoComplete="off"
-                  data-form-type="other"
-                />
-              </div>
-            </div>
-          </div>
 
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900">Tax Configuration</h3>

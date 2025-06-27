@@ -82,11 +82,6 @@ class ProjectBase(BaseModel):
     status: Optional[Literal["planning", "in_progress", "completed", "on_hold"]] = PROJECT_STATUS_PLANNING
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
-    estimated_cost: Optional[float] = 0.0
-    labor_cost: Optional[float] = 0.0
-    material_cost: Optional[float] = 0.0
-    permit_cost: Optional[float] = 0.0
-    other_cost: Optional[float] = 0.0
     sales_tax_rate: Optional[Decimal] = Field(default=None, ge=0, le=0.5, description="Sales tax rate as decimal (0.0875 for 8.75%)")
     is_tax_exempt: Optional[bool] = False
 
@@ -96,11 +91,9 @@ class ProjectCreate(ProjectBase):
 class ProjectUpdate(ProjectBase):
     title: Optional[str] = None
     client_id: Optional[int] = None
-    actual_cost: Optional[float] = None
 
 class Project(ProjectBase):
     id: int
-    actual_cost: float
     sales_tax_amount: Decimal
     total_with_tax: Decimal
     created_at: datetime

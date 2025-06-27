@@ -70,12 +70,6 @@ class Project(Base):
     status = Column(String, default=PROJECT_STATUS_PLANNING)  # planning, in_progress, completed, on_hold
     start_date = Column(DateTime)
     end_date = Column(DateTime)
-    estimated_cost = Column(Numeric(10,2), default=0.0)
-    actual_cost = Column(Numeric(10,2), default=0.0)
-    labor_cost = Column(Numeric(10,2), default=0.0)
-    material_cost = Column(Numeric(10,2), default=0.0)
-    permit_cost = Column(Numeric(10,2), default=0.0)
-    other_cost = Column(Numeric(10,2), default=0.0)
     sales_tax_rate = Column(Numeric(6, 6), default=0.0)
     sales_tax_amount = Column(Numeric(10, 2), default=0.0)
     is_tax_exempt = Column(Boolean, default=False)
