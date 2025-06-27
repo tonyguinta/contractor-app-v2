@@ -102,17 +102,24 @@ This document outlines the complete implementation plan for markup and discount 
 
 ---
 
-## **Phase 3: Calculation Logic** ⏱️ *60-75 mins*
+## **Phase 3: Calculation Logic** ⏱️ *65-80 mins*
 **Goal**: Implement markup/discount calculations
 
 ### **Tasks:**
 
-#### **3A: Update Project Calculation Helper** *(45 mins)*
+#### **3A: Update Project Calculation Helper** *(50 mins)*
 - Modify existing `calculate_project_totals()` function in `utils/calculations.py`
 - New calculation order: Base Cost → Markup → Discount → Tax → Total
-- Handle both percent and flat markup/discount types
-- Add proper decimal arithmetic for accuracy
-- Include markup change logging
+- Handle markup/discount using appropriate fields based on type:
+  ```python
+  if project.material_markup_type == 'percent':
+      markup = base_cost * (project.material_markup_percent / 100)
+  else:
+      markup = project.material_markup_flat
+  ```
+- Add proper decimal arithmetic for accuracy (round only at final total)
+- Include markup change logging with immutable audit trail
+- Validate type/value consistency before calculations
 
 #### **3B: Integrate with Project Update API** *(15 mins)*
 - Ensure markup calculations trigger on project updates
@@ -126,16 +133,20 @@ This document outlines the complete implementation plan for markup and discount 
 
 ### **Testing Steps:**
 1. Create test project with known values
-2. Verify calculation: $1000 base + 20% markup + 10% discount + 8.75% tax
-3. Test both percent and flat markup/discount combinations
-4. Test markup change logging
-5. Test company default inheritance for new projects
+2. Verify percent calculation: $1000 base + 20% markup (using percent field)
+3. Verify flat calculation: $1000 base + $200 markup (using flat field)
+4. Test mixed combinations (percent markup + flat discount, etc.)
+5. Verify only appropriate field is used based on type setting
+6. Test markup change logging captures field changes correctly
+7. Test company default inheritance for new projects
 
 ### **✅ Phase 3 Success Criteria:**
 - [ ] Markup/discount calculations work correctly: base → markup → discount → tax → total
+- [ ] Percent calculations use _percent fields, flat use _flat fields exclusively
+- [ ] Type/value validation prevents using wrong field
 - [ ] Both percent and flat calculations accurate to the penny
-- [ ] Markup change audit trail functions properly
-- [ ] New projects inherit company default markups
+- [ ] Markup change audit trail captures all 15 fields properly
+- [ ] New projects inherit company default markups (percent fields only)
 - [ ] Markup validation warnings/limits work
 - [ ] All calculations use proper decimal arithmetic
 
@@ -184,23 +195,28 @@ This document outlines the complete implementation plan for markup and discount 
 
 ---
 
-## **Phase 5: Frontend Project Markup Interface** ⏱️ *90-120 mins*
+## **Phase 5: Frontend Project Markup Interface** ⏱️ *105-135 mins*
 **Goal**: Add markup/discount controls to project editing
 
 ### **Tasks:**
 
-#### **5A: Update Project Modal** *(60 mins)*
-- Add markup section to `ProjectModal.tsx`
-- Separate inputs for Materials and Labor markup
-- Type selector (percent/flat) per category
-- Discount section with project-level discount
-- Real-time calculation preview
+#### **5A: Update Project Modal** *(70 mins)*
+- Add tabbed markup section to `ProjectModal.tsx` (Costs, Markup, Discounts)
+- Separate inputs for Materials and Labor markup with type selectors
+- Type selector (percent/flat) per category using appropriate precision fields
+- Show only relevant input field based on type selection (percent or flat)
+- Discount section with per-category and project-level discounts
+- Real-time calculation preview with backend verification
+- Immutable calculation history display
 
-#### **5B: Add Validation & Warnings** *(30 mins)*
-- Markup validation (0-300% with override capability)
-- Discount warnings when > project total
-- Visual indicators for high markups
-- Clear separation of markup (internal) vs discount (client-facing)
+#### **5B: Advanced Validation & Warnings** *(35 mins)*
+- Stepped markup validation (0.01% min, 100% warning, 300% cap with override)
+- Discount warnings when > project total with clear messaging
+- Visual warning badges with color-coded severity levels
+- Override confirmation dialogs for extreme values
+- Clear visual separation: markup (internal-only) vs discount (client-facing)
+- Type/value consistency enforcement: only one field editable per type
+- Minimum value validation for both percent (0.01%) and flat ($0.01)
 
 #### **5C: Update Project Display** *(30 mins)*
 - Modify `CostSummary.tsx` to show markup/discount breakdown
@@ -209,23 +225,28 @@ This document outlines the complete implementation plan for markup and discount 
 - Update project detail pages with markup information
 
 ### **Testing Steps:**
-1. Edit project - verify markup/discount inputs appear
-2. Test type switching (percent ↔ flat) per category
-3. Test real-time calculation updates
-4. Verify warnings appear for high markups and excessive discounts
-5. Test markup override capability (>300%)
-6. Verify markup is hidden from client-facing views
+1. Edit project - verify markup/discount inputs appear in tabbed interface
+2. Test type switching (percent ↔ flat) shows/hides appropriate input fields
+3. Test that only one value field is editable based on type selection
+4. Test real-time calculation updates
+5. Verify warnings appear for high markups and excessive discounts
+6. Test markup override capability (>300%) with confirmation dialog
+7. Verify type/value consistency is enforced
+8. Verify markup is hidden from client-facing views
 
 ### **✅ Phase 5 Success Criteria:**
-- [ ] Project edit modal includes markup/discount sections
+- [ ] Project edit modal includes tabbed markup/discount sections
 - [ ] Separate markup controls for Materials and Labor
-- [ ] Type selector (percent/flat) works for each category
+- [ ] Type selector (percent/flat) switches between appropriate input fields
+- [ ] Only relevant field (percent or flat) is editable based on type selection
+- [ ] Other field is disabled/hidden when not applicable
 - [ ] Project-level discount controls function properly
 - [ ] Real-time calculation updates work smoothly
 - [ ] Validation warnings appear appropriately
-- [ ] Markup override capability functions (>300%)
+- [ ] Type/value consistency enforced in UI
+- [ ] Markup override capability functions (>300%) with confirmation
 - [ ] Client-facing views hide markup, show discount only
-- [ ] Form inherits company defaults for new projects
+- [ ] Form inherits company defaults for new projects (percent fields only)
 
 ### **🛑 APPROVAL GATE: Wait for positive confirmation before Phase 6**
 
@@ -286,14 +307,18 @@ This document outlines the complete implementation plan for markup and discount 
 |----------|----------------|
 | New user, no company markup defaults | Projects default to 0% markup |
 | Set company defaults: 20% materials, 15% labor | New projects inherit these values |
-| Project: $1000 materials + 20% markup | Materials total: $1,200 |
-| Project: $2000 labor + 15% markup | Labor total: $2,300 |
-| Combined + 10% project discount | Subtotal: $3,500, Discount: $350, Total: $3,150 |
-| Add 8.75% tax to final total | Final total: $3,425.63 |
+| Project: $1000 materials + 20% markup | Materials total: $1,200.00 (using percent field) |
+| Project: $2000 labor + 15% markup | Labor total: $2,300.00 (using percent field) |
+| Combined + 10% project discount | Subtotal: $3,500.00, Discount: $350.00, Total: $3,150.00 |
+| Add 8.75% tax to final total | Final total: $3,425.63 (rounded to nearest cent) |
+| Flat markup: $100 materials, $50 labor | Direct addition: $1,100 + $2,050 = $3,150.00 (using flat fields) |
+| Mixed: 10% materials, $200 labor flat | Materials: $1,100, Labor: $2,200, Total: $3,300.00 |
+| Type validation | If type='percent', flat field = 0; if type='flat', percent field = 0 |
+| Field usage | Calculations only use field matching the type setting |
 | Markup >100% | Shows warning but allows |
 | Markup >300% | Requires override confirmation |
 | Discount > project total | Shows warning but allows (credit scenario) |
-| Markup change | Logged in audit trail |
+| Markup change | Logged in audit trail with specific field names |
 
 ---
 
@@ -339,15 +364,46 @@ If any phase fails its success criteria:
 
 ---
 
-## **🔧 Addendum: Final Implementation Details**
+## **🔧 Addendum: Separate Column Architecture**
 
-These refinements are based on finalized decisions and should be incorporated into the implementation plan as enhancements to ensure correctness, precision, and future extensibility.
+After evaluation, we selected the **separate column approach** over single-value columns for better data integrity and financial accuracy.
 
 ---
 
+### **✅ Architecture Decision: Why Separate Columns?**
+
+**Pros of Separate Column Approach:**
+1. **Precision-appropriate data types**
+   - NUMERIC(7,4) for percents → Supports up to 999.9999%
+   - NUMERIC(10,2) for flat values → Matches currency formatting expectations
+   - Avoids "one-size-fits-all" precision that's not ideal for either use case
+
+2. **Data integrity / semantic clarity**
+   - Each field has a single purpose
+   - Immediately obvious what the value represents
+   - Reduces risk of misinterpreting values in analytics or reporting pipelines
+
+3. **Cleaner backend calculations**
+   ```python
+   if type == 'percent':
+       use *_percent
+   else:
+       use *_flat
+   ```
+   - No parsing or type-based casting needed
+
+4. **API & frontend clarity**
+   - UI logic becomes straightforward: Show one input, send value to one field
+   - Backend can enforce that only one of the two fields is non-zero for a given type
+
+**Tradeoffs:**
+- Slightly higher schema complexity (15 fields instead of 5)
+- Extra validation logic needed
+- Worth it for financial data integrity and long-term maintainability
+
 ### **✅ Enhanced Database Schema Design**
 
-**Separate Fields for Precision Consistency:**
+**Separate Fields for Maximum Precision:**
 ```sql
 -- Project markup fields (separate columns for proper precision)
 material_markup_type VARCHAR(10) DEFAULT 'percent' -- 'percent' or 'flat'
@@ -411,14 +467,16 @@ project_discount_flat NUMERIC(10,2) DEFAULT 0.0
 ### **✅ Implementation Priority Updates**
 
 **Phase 1 Enhancements:**
-- Use separate precision fields in database schema
-- Add smart company defaults (20%/15%)
-- Enhanced audit trail table with calculation history
+- Use separate precision fields in database schema (15 total fields)
+- Add smart company defaults (20%/15%) in percent fields only
+- Enhanced audit trail table tracking all field changes
+- Validation to ensure type/value consistency
 
 **Phase 4-5 Enhancements:**
-- Tabbed interface implementation
-- Advanced warning badge system
-- Override confirmation workflows
+- Tabbed interface implementation for better organization
+- Advanced warning badge system with color coding
+- Override confirmation workflows for extreme values
+- Type-aware field switching (show/hide based on selection)
 
 **Testing Matrix Additions:**
 | Scenario | Expected Result |
@@ -427,6 +485,9 @@ project_discount_flat NUMERIC(10,2) DEFAULT 0.0
 | Mixed: 10% materials, $200 labor flat | Materials: $1,100, Labor: $2,200, Total: $3,300.00 |
 | Override >300% markup | Confirmation dialog → Audit log entry |
 | Minimum validation | 0.01% and $0.01 enforced |
+| Type consistency | Only matching value field has non-zero value |
+| Precision verification | Percent fields: 4 decimals, Flat fields: 2 decimals |
+| Field switching | UI shows only relevant input based on type selection |
 
 ---
 

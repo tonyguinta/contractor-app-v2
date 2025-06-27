@@ -33,6 +33,8 @@ class CompanySettings(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     default_sales_tax_rate = Column(Numeric(6, 6), default=0.0)
+    default_material_markup_percent = Column(Numeric(7, 4), default=0.0)
+    default_labor_markup_percent = Column(Numeric(7, 4), default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
@@ -74,6 +76,21 @@ class Project(Base):
     sales_tax_amount = Column(Numeric(10, 2), default=0.0)
     is_tax_exempt = Column(Boolean, default=False)
     total_with_tax = Column(Numeric(10, 2), default=0.0)
+    material_markup_type = Column(String(10), default='percent')
+    material_markup_percent = Column(Numeric(7, 4), default=0.0)
+    material_markup_flat = Column(Numeric(10, 2), default=0.0)
+    labor_markup_type = Column(String(10), default='percent')
+    labor_markup_percent = Column(Numeric(7, 4), default=0.0)
+    labor_markup_flat = Column(Numeric(10, 2), default=0.0)
+    material_discount_type = Column(String(10), default='percent')
+    material_discount_percent = Column(Numeric(7, 4), default=0.0)
+    material_discount_flat = Column(Numeric(10, 2), default=0.0)
+    labor_discount_type = Column(String(10), default='percent')
+    labor_discount_percent = Column(Numeric(7, 4), default=0.0)
+    labor_discount_flat = Column(Numeric(10, 2), default=0.0)
+    project_discount_type = Column(String(10), default='percent')
+    project_discount_percent = Column(Numeric(7, 4), default=0.0)
+    project_discount_flat = Column(Numeric(10, 2), default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
@@ -252,4 +269,23 @@ class OtherCostItem(Base):
     subproject_id = Column(Integer, ForeignKey("subprojects.id"))
 
     # Relationships
-    subproject = relationship("Subproject", back_populates="other_cost_items") 
+    subproject = relationship("Subproject", back_populates="other_cost_items")
+
+
+class MarkupChange(Base):
+    __tablename__ = "markup_changes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    field_changed = Column(String(50), nullable=False)
+    old_value = Column(String(20))
+    new_value = Column(String(20), nullable=False)
+    change_reason = Column(Text)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Foreign keys
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+
+    # Relationships
+    project = relationship("Project")
+    user = relationship("User")

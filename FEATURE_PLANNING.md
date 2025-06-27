@@ -125,10 +125,12 @@ CREATE TABLE markup_changes (
 
 **User Experience:**
 - **Input format**: Percentage with % suffix, currency with $ prefix
+- **Type-aware inputs**: Show only relevant field (percent or flat) based on selection
 - **Warnings**: Visual indicators for high markups (>100%) and excessive discounts
 - **Company settings**: Default markup percentages per category
 - **Project override**: Easy per-project markup customization
 - **Calculation preview**: Real-time total updates as markups/discounts change
+- **Data integrity**: Only one value field active per type setting
 
 ---
 
