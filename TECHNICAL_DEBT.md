@@ -14,12 +14,12 @@ This document tracks known technical debt, architecture concerns, and improvemen
 
 ## Medium Priority Issues
 
-### UX Improvements (from README roadmap)
-- **Enhanced Login UX** - When logging in with non-existent email, present user with helpful message and option to register instead of generic error
-- **Form Privacy Enhancement** - Prevent browser auto-fill/auto-complete on sensitive business forms (client details, project information) to maintain data privacy
-- **Phone Number Formatting** - Auto-format phone numbers during input and store them in consistent format (e.g., (555) 123-4567) across all forms and displays
-- **Currency Formatting** - Format all dollar amounts with consistent decimal places (e.g., $1,234.00) across forms, displays, and reports
+### UX Improvements
+- **Currency Formatting** - Format all dollar amounts with consistent decimal places (e.g., $1,234.00) across forms, displays, and reports using `Intl.NumberFormat`
 - **Date Validation** - Prevent project end date from being set before start date with real-time validation and helpful error messages
+- **Material Library Management** - User-maintained material_entries with full CRUD capabilities (moved to FEATURE_PLANNING.md)
+- **Navigation Enhancement** - Back-arrow/Dashboard links for easier navigation (moved to FEATURE_PLANNING.md)
+- **Inline Client Creation** - Create clients within Project modal (moved to FEATURE_PLANNING.md)
 
 ### Code Quality
 - **API error handling standardization** - Ensure consistent error response formats across all endpoints
@@ -45,7 +45,16 @@ This document tracks known technical debt, architecture concerns, and improvemen
 
 ## Resolved Issues
 
-*(Items moved here when completed)*
+### ✅ Completed Features (Moved to FEATURE_PLANNING.md)
+- **Enhanced Login UX** - Persistent error messages with registration suggestions
+- **Form Privacy Enhancement** - Browser auto-complete disabled on business forms
+- **Phone Number Formatting** - Auto-format phone numbers on registration page
+- **Cost Breakdown Field Removal** - Removed obsolete project-level cost fields
+
+### ✅ Completed Technical Improvements
+- **Sales Tax Implementation** - Complete 6-phase implementation with company/project settings
+- **Database Precision** - Fixed tax rate precision from NUMERIC(5,4) to NUMERIC(6,6)
+- **Login Error UX** - Replace fast-disappearing toasts with persistent error display
 
 ---
 

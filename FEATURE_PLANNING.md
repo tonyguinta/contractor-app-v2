@@ -15,6 +15,9 @@
 8. **Legal Boilerplate Templates** - Estimate/invoice legal text
 9. **Demo User System** - Sales and testing capabilities
 10. **AI Material Estimation** - GPT-assisted quantity prediction
+11. **Material Library Management** - User-maintained material_entries with full CRUD
+12. **Navigation Enhancement** - Back-arrow/Dashboard links for easier navigation
+13. **Inline Client Creation** - Create clients within Project modal without navigation
 
 ### **🟢 Low Priority (Technical Debt)**
 11. **Staging Static Asset 401 Bug** - Cosmetic issue fix
@@ -42,7 +45,7 @@
 **RESOLVED - Final Implementation Specification:**
 
 **Database Design:**
-- `sales_tax_rate` - Decimal(5,4) storing 0.0875 for 8.75%
+- `sales_tax_rate` - Decimal(6,6) storing 0.0875 for 8.75%
 - `sales_tax_amount` - Decimal(10,2) storing rounded tax in cents  
 - `is_tax_exempt` - Boolean override that sets tax to 0%
 - `total_with_tax` - Decimal(10,2) final project total
@@ -55,7 +58,7 @@
 
 **User Experience:**
 - **Input Format**: Percentage with % suffix (8.75%)
-- **Storage Format**: Decimal (0.0875) with 4 decimal precision
+- **Storage Format**: Decimal (0.0875) with 6 decimal precision
 - **Display Format**: Rounded to 2 decimal places
 - **Validation**: 0-50% range with warning above 25%
 - **Settings Location**: Company Settings page in sidebar
@@ -198,8 +201,13 @@
 
 ### **6. Phone Number & Currency Formatting**
 
-**Agreed Technical Approach:**
-- Frontend: `libphonenumber-js` for phone validation/formatting
+**✅ PARTIALLY COMPLETE - Phone Formatting Done**
+- ✅ Registration page phone formatting: (XXX) XXX-XXXX as user types
+- 🔄 Currency formatting: Still needs `Intl.NumberFormat` implementation
+- 📋 Remaining: Client/user phone fields, currency display standardization
+
+**Technical Approach:**
+- Frontend: `libphonenumber-js` for phone validation/formatting  
 - Currency: `Intl.NumberFormat` for consistent display
 - Backend: Sanitization and validation
 
@@ -207,6 +215,61 @@
 - Store phone numbers in E.164 format
 - Display formatting based on user locale
 - Consistent currency display across all components
+
+---
+
+### **11. Material Library Management**
+
+**Agreed Requirements:**
+- User-maintained material_entries with full CRUD capabilities
+- Global material library for autocomplete across projects
+- Bulk import/export functionality
+- Category organization and search
+- Price history tracking
+
+**Technical Implementation:**
+- New page: `/materials` with full table management
+- Enhanced autocomplete with better search
+- Material reuse tracking across projects
+- Export to CSV for external price updates
+
+**Priority:** Low - Nice-to-have feature for power users
+
+---
+
+### **12. Navigation Enhancement**
+
+**Agreed Requirements:**
+- Add back-arrow or Dashboard links to major app areas
+- Improve navigation between Clients, Projects, Tasks, Invoices, Company Settings
+- Breadcrumb navigation for deep pages
+- Mobile-friendly navigation improvements
+
+**Technical Implementation:**
+- Add navigation components to page headers
+- Consistent breadcrumb patterns
+- Improve mobile sidebar experience
+- Quick access to common actions
+
+**Priority:** Medium - Improves user experience significantly
+
+---
+
+### **13. Inline Client Creation**
+
+**Agreed Requirements:**
+- Create new clients within Project modal
+- Avoid navigation away from project creation flow
+- Seamless client creation and selection
+- Form validation and error handling
+
+**Technical Implementation:**
+- Modal-within-modal or expandable form section
+- Immediate client selection after creation
+- Integration with existing client validation
+- Consistent UX patterns
+
+**Priority:** Medium - Improves project creation workflow
 
 ---
 
