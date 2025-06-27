@@ -94,6 +94,9 @@ python3 -c "from app.db.database import engine; from app.models.models import Ba
 Understanding these files helps navigate the codebase more effectively:
 - `setup.py` - Automated environment setup with dependency checking and cross-platform support
 - `run.py` - Backend server runner with proper virtual environment handling  
+- `FEATURE_PLANNING.md` - Strategic roadmap for major features and business logic
+- `SALES_TAX_IMPLEMENTATION.md` - Complete sales tax implementation guide (✅ COMPLETE)
+- `MARKUP_SYSTEM_IMPLEMENTATION.md` - Phased markup/discount implementation plan (🚀 READY)
 - `TECHNICAL_DEBT.md` - Current architectural concerns and improvement priorities
 - `DATABASE_RESET_GUIDE.md` - Step-by-step database reset procedures for development issues
 
@@ -290,6 +293,41 @@ useEffect(() => {
 - [ ] Verify mobile responsiveness and accessibility
 
 The MaterialsTable implementation serves as the reference for all other cost tracking tables.
+
+## Implementation Approach
+
+### **Following Proven Phase-by-Phase Pattern**
+Based on successful sales tax implementation, use the same approach for major features:
+1. **Break into 6 bite-sized phases** (45-120 minutes each)
+2. **Clear success criteria** for each phase
+3. **Approval gates** between phases
+4. **Test thoroughly** at each boundary
+5. **Commit frequently** with focused commits
+
+### **Current Implementation Priorities**
+1. **Markup System** - Use `MARKUP_SYSTEM_IMPLEMENTATION.md` guide
+2. **Estimate Generation** - PDF generation and client signatures
+3. **Change Order System** - Estimate modifications and approvals
+
+### **Two-Tier Work Tracking**
+
+#### **Tier 1: Strategic Roadmap (FEATURE_PLANNING.md)**
+- **Purpose**: Authoritative source for major features and business logic
+- **Content**: Complete business requirements, technical specifications, and implementation readiness
+- **Usage**: Reference before implementing any major feature to ensure all decisions are documented
+- **Scope**: High-level strategic planning and cross-feature coordination
+
+#### **Tier 1.5: Implementation Guides**
+- **SALES_TAX_IMPLEMENTATION.md**: Complete 6-phase tax system guide (✅ COMPLETE)
+- **MARKUP_SYSTEM_IMPLEMENTATION.md**: Detailed markup/discount implementation plan (🚀 READY)
+- **Purpose**: Bite-sized, phase-by-phase implementation with approval gates
+- **Usage**: Follow these guides for complex feature implementation to ensure quality and catch issues early
+
+#### **Tier 2: Active Sprint Todos (TodoWrite tool)**
+- **Purpose**: Track current sprint work and immediate actionable tasks
+- **Content**: Specific implementation tasks, bug fixes, and short-term objectives
+- **Usage**: Daily task management and progress tracking within current development cycles
+- **Scope**: Tactical execution of strategic roadmap items
 
 ## Critical Development Guidelines
 

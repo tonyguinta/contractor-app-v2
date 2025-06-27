@@ -3,106 +3,132 @@
 ## **Priority Roadmap Consensus**
 
 ### **🔴 High Priority (Revenue Management Core)**
-1. **Project-Level Sales Tax** - Foundation for estimates/invoices
-2. **Markup System (Labor & Materials)** - Core profitability feature  
-3. **Estimate Generation** - Client-facing PDF estimates with signatures
-4. **Change Order System** - Track estimate modifications and approvals
+1. **Markup System (Labor & Materials)** - Core profitability feature  
+2. **Estimate Generation** - Client-facing PDF estimates with signatures
+3. **Change Order System** - Track estimate modifications and approvals
 
 ### **🟡 Medium Priority (UX & Standards)**
-5. **Standardized API Error Format** - Consistent error handling
-6. **Phone Number & Currency Formatting** - Professional data display
-7. **Trip Charge Functionality** - Additional revenue line item
-8. **Legal Boilerplate Templates** - Estimate/invoice legal text
-9. **Demo User System** - Sales and testing capabilities
-10. **AI Material Estimation** - GPT-assisted quantity prediction
-11. **Material Library Management** - User-maintained material_entries with full CRUD
-12. **Navigation Enhancement** - Back-arrow/Dashboard links for easier navigation
-13. **Inline Client Creation** - Create clients within Project modal without navigation
+4. **Standardized API Error Format** - Consistent error handling
+5. **Phone Number & Currency Formatting** - Professional data display
+6. **Trip Charge Functionality** - Additional revenue line item
+7. **Legal Boilerplate Templates** - Estimate/invoice legal text
+8. **Demo User System** - Sales and testing capabilities
+9. **AI Material Estimation** - GPT-assisted quantity prediction
+10. **Material Library Management** - User-maintained material_entries with full CRUD
+11. **Navigation Enhancement** - Back-arrow/Dashboard links for easier navigation
+12. **Inline Client Creation** - Create clients within Project modal without navigation
 
 ### **🟢 Low Priority (Technical Debt)**
-11. **Staging Static Asset 401 Bug** - Cosmetic issue fix
+13. **Staging Static Asset 401 Bug** - Cosmetic issue fix
 
 ### **📋 Post-Estimate Features Cleanup Milestone**
 - **Refactor models.py/schemas.py** - Domain-based file separation (planned after estimate generation features complete)
 - **Advanced Trip Charge Features** - GPS/distance integration based on user feedback
 - **Third-party E-Signature Integration** - DocuSign/HelloSign API for full compliance
 
-## **Detailed Feature Specifications**
+## **✅ Completed Features**
 
-### **1. Project-Level Sales Tax**
+### **✅ 1. Project-Level Sales Tax - COMPLETE**
 
-**Agreed Requirements:**
-- Store `tax_rate` at project level with company-wide default
-- Calculate tax AFTER markup application
-- Display full breakdown on estimates/invoices
-- Support future API integration (TaxJar, Avalara)
+**🎆 Implementation Status: PRODUCTION READY**
+- ✅ All requirements fulfilled and tested
+- ✅ Real-time tax calculations with full precision
+- ✅ Company defaults with project-level overrides
+- ✅ Tax exempt functionality
+- ✅ Consistent UX across all forms
+- ✅ Database migrations completed
+- ✅ Production deployment verified
 
-**Technical Decisions:**
-- **Storage Format**: Store as decimal (0.0875) for calculations, display as percentage (8.75%)
-- **Default Behavior**: Use contractor's home state tax as company default
-- **Override Capability**: Per-project tax rate override
-
-**RESOLVED - Final Implementation Specification:**
-
-**Database Design:**
-- `sales_tax_rate` - Decimal(6,6) storing 0.0875 for 8.75%
-- `sales_tax_amount` - Decimal(10,2) storing rounded tax in cents  
-- `is_tax_exempt` - Boolean override that sets tax to 0%
-- `total_with_tax` - Decimal(10,2) final project total
-- `company_settings` table with `default_sales_tax_rate` field
-
-**Calculation Logic:**
-- **Order**: Base Cost → Markup → Tax (rounded to cents) → Final Total
-- **Tax Exempt**: Boolean override bypasses all tax calculation
-- **Precision**: Tax rounded to nearest cent at calculation time
-
-**User Experience:**
-- **Input Format**: Percentage with % suffix (8.75%)
-- **Storage Format**: Decimal (0.0875) with 6 decimal precision
-- **Display Format**: Rounded to 2 decimal places
-- **Validation**: 0-50% range with warning above 25%
-- **Settings Location**: Company Settings page in sidebar
-- **Tax Exempt**: Project-level checkbox override
-
-**API Design:**
-- `GET/PUT /company/settings` - Company-wide defaults
-- Modified `/projects/:id` endpoints include tax logic
-- Company settings independent of user/project entities
-
-**Migration Strategy:**
-- Safe batch update: `sales_tax_rate = 0.0`, `is_tax_exempt = false`
-- No recalculation of existing project totals during migration
-- Recalculation only occurs on next project save/edit
-
-**User Documentation:**
-- Tooltip text: "Tax is applied to the full project total. Note: Labor and permit fees may not be taxable in your jurisdiction. Adjust the tax rate accordingly."
-- Applied to both Project Edit modal and Company Settings page
+**Key Technical Achievements:**
+- NUMERIC(6,6) precision supporting rates up to 99.9999%
+- Real-time calculation updates across subproject changes
+- Clean architecture without redundant cost fields
+- Comprehensive error handling and validation
 
 ---
 
-### **2. Markup System (Labor & Materials)**
+## **Detailed Feature Specifications**
 
-**Agreed Requirements:**
-- **NEVER show markup percentages to clients** - only final totals
-- Support both flat amount and percentage markup
-- Settable at project level with company defaults
-- Apply to Materials and Labor categories only (not Permits/Other)
+### **1. Markup System (Labor & Materials)**
 
-**Technical Implementation:**
-- Store markup as separate fields: `material_markup_type` (flat/percentage), `material_markup_value`
-- Calculate markup before tax application
-- Display only final totals on client-facing documents
+**✅ FINALIZED REQUIREMENTS - READY FOR IMPLEMENTATION**
 
-**Questions to Answer Before Implementation:**
-- Should markup be per-category or single project-wide?
-- Do we need markup history/audit trail?
-- Should there be maximum markup limits?
-- How do we handle negative markups (discounts)?
+**Core Business Logic:**
+- **Per-category markups**: Independent markup for Materials and Labor (not Permits/Other)
+- **Company defaults**: Percent markups only, projects can override
+- **Calculation order**: Base Cost → Markup → Discount → Tax
+- **Visibility**: Markups hidden from clients, discounts visible
+- **Rounding**: Only at final total for maximum accuracy
 
-**Business Logic Decisions:**
-- **Markup Application Order**: Base Cost → Markup → Tax
-- **Markup Visibility**: Internal only, never client-facing
-- **Default Behavior**: Zero markup if not set
+**Markup Configuration:**
+- **Types supported**: Percent or flat amount per category
+- **Validation**: 
+  - Percent: 0.01% minimum, warning at 100%, hard cap at 300% (with override)
+  - Flat: $0.01 minimum, no maximum (business logic validation)
+  - No negative values allowed
+- **Precision**: Separate fields ensure proper precision:
+  - Percent fields: NUMERIC(7,4) for up to 999.9999%
+  - Flat fields: NUMERIC(10,2) for currency amounts
+- **Smart defaults**: 20% materials, 15% labor for new companies
+
+**Discount System:**
+- **Separate from markup**: Independent discount fields with proper precision
+- **Validation**: 
+  - Percent: 0.01% minimum, warning when discount > project total
+  - Flat: $0.01 minimum, warning when discount > project total
+  - No negative values allowed
+- **Application**: Applied after markup, visible to clients
+- **Use cases**: Property damage, complaint resolution, negotiated credits
+
+**Audit & Compliance:**
+- **Audit trail**: `markup_changes` table tracking who/what/when
+- **Financial tracking**: Complete history of markup modifications
+- **User warnings**: UI alerts for high markups and excessive discounts
+
+**Database Design:**
+```sql
+-- Project markup fields (separate columns for precision)
+material_markup_type VARCHAR(10) DEFAULT 'percent' -- 'percent' or 'flat'
+material_markup_percent NUMERIC(7,4) DEFAULT 0.0    -- Percentage values  
+material_markup_flat NUMERIC(10,2) DEFAULT 0.0      -- Currency values
+labor_markup_type VARCHAR(10) DEFAULT 'percent'
+labor_markup_percent NUMERIC(7,4) DEFAULT 0.0
+labor_markup_flat NUMERIC(10,2) DEFAULT 0.0
+
+-- Discount fields with proper precision
+material_discount_type VARCHAR(10) DEFAULT 'percent'
+material_discount_percent NUMERIC(7,4) DEFAULT 0.0
+material_discount_flat NUMERIC(10,2) DEFAULT 0.0
+labor_discount_type VARCHAR(10) DEFAULT 'percent'
+labor_discount_percent NUMERIC(7,4) DEFAULT 0.0
+labor_discount_flat NUMERIC(10,2) DEFAULT 0.0
+project_discount_type VARCHAR(10) DEFAULT 'percent'
+project_discount_percent NUMERIC(7,4) DEFAULT 0.0
+project_discount_flat NUMERIC(10,2) DEFAULT 0.0
+
+-- Company defaults (percent only)
+default_material_markup_percent NUMERIC(7,4) DEFAULT 0.2000  -- 20%
+default_labor_markup_percent NUMERIC(7,4) DEFAULT 0.1500     -- 15%
+
+-- Audit trail
+CREATE TABLE markup_changes (
+  id SERIAL PRIMARY KEY,
+  project_id INTEGER REFERENCES projects(id),
+  user_id INTEGER REFERENCES users(id),
+  field_changed VARCHAR(50),
+  old_value VARCHAR(20),
+  new_value VARCHAR(20),
+  change_reason TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**User Experience:**
+- **Input format**: Percentage with % suffix, currency with $ prefix
+- **Warnings**: Visual indicators for high markups (>100%) and excessive discounts
+- **Company settings**: Default markup percentages per category
+- **Project override**: Easy per-project markup customization
+- **Calculation preview**: Real-time total updates as markups/discounts change
 
 ---
 
@@ -330,17 +356,22 @@
 5. ✅ Consider impact on existing features
 6. ✅ Define testing approach for staging environment
 
-### **Sales Tax Implementation (IN PROGRESS):**
+### **Sales Tax Implementation:**
+- ✅ **COMPLETE - All phases implemented and production ready**
 - ✅ Tax rate validation: 0-50% with >25% warning
 - ✅ Company settings design: Simple table with default_sales_tax_rate
 - ✅ Migration strategy: Safe batch update to 0%, no recalculation
 - ✅ Tax-exempt handling: Project-level boolean override
 - ✅ All technical specifications finalized
+- ✅ NUMERIC(6,6) precision for full tax rate support
+- ✅ Real-time calculations across all subproject changes
+- ✅ Production deployment and testing complete
 
 ### **Markup System Implementation:**
 - [ ] Finalize markup storage approach (per-category vs project-wide)
 - [ ] Design markup audit trail if needed
 - [ ] Plan integration with existing cost calculations
+- [ ] Update feature numbering after sales tax completion
 
 ### **Estimate Generation Implementation:**
 - [ ] Choose PDF generation approach
@@ -481,6 +512,6 @@ Track every major financial or legal change with complete audit trail:
 
 ---
 
-**NEXT STEP: Begin Sales Tax implementation** - All requirements clear and technical approach defined.
+**NEXT STEP: Begin Markup System implementation** - Sales tax complete, markup is now the highest priority feature.
 
 This document will be referenced before implementing each feature to ensure all decisions are made and requirements are clear.
