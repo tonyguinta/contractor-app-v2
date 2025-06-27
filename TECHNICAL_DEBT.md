@@ -26,6 +26,12 @@ This document tracks known technical debt, architecture concerns, and improvemen
 - **Frontend loading state patterns** - Standardize loading spinner usage and error boundaries
 - **Type safety gaps** - Review for any `any` types or missing TypeScript interfaces
 
+### Deployment & Infrastructure
+- **Duplicate requirements.txt files** - Currently maintaining both `/requirements.txt` and `/backend/requirements.txt` for Railway compatibility. Root file is used for deployment while backend file is logically correct. Need to either:
+  1. Configure Railway to use backend/requirements.txt properly, or
+  2. Standardize on root requirements.txt and document the architectural trade-off
+- **Railway configuration complexity** - Failed attempt at custom nixpacks.toml showed that Railway auto-detection is more reliable than custom build configurations. Document when to use auto-detection vs custom configs.
+
 ## Low Priority / Future Considerations
 
 ### Performance Monitoring
