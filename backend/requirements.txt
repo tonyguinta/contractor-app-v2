@@ -9,4 +9,5 @@ python-decouple==3.8
 psycopg2-binary==2.9.9
 gunicorn==21.2.0
 email-validator==2.1.0
-alembic==1.13.1 
+alembic==1.13.1
+# Force cache invalidation 
